@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [ApiGateWay, Login, Subscription, Userdata]
+        project: [ApiGateWay, Login, Userdata]
     steps:
       - uses: actions/checkout@v3
         name: Check out the repo
