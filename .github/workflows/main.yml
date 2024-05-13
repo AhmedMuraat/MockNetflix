@@ -31,14 +31,14 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and Push Docker image
-        uses: docker/build-push-action@v3
-        with:
-          context: ./${{ matrix.project }}
-          file: ./${{ matrix.project }}/Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/${{ matrix.project }}:latest
-
-      - name: Build and push
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ matrix.project }}:latest -f ./${{ matrix.project }}/Dockerfile .
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ matrix.project }}:latest
+          # Convert project name to lowercase for Docker tags
+          PROJECT_NAME="${{ matrix.project }}"
+          LOWERCASE_PROJECT_NAME=$(echo "$PROJECT_NAME" | tr '[:upper:]' '[:lower:]')
+          
+          # Build the Docker image
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/$LOWERCASE_PROJECT_NAME:latest -f ./$PROJECT_NAME/Dockerfile ./$PROJECT_NAME
+          
+          # Push the Docker image to Docker Hub
+          docker push ${{ secrets.DOCKER_USERNAME }}/$LOWERCASE_PROJECT_NAME:latest
+
