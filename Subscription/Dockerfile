@@ -3,16 +3,16 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 USER app
 WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
+EXPOSE 8082
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Subscription/Subscription.csproj", "Subscription/"]
+COPY ["Subscription.csproj", "Subscription/"]
 RUN dotnet restore "./Subscription/Subscription.csproj"
+WORKDIR /cert
+RUN dotnet dev-certs https -ep certhttps.pfx -p Password123
 COPY . .
-WORKDIR "/src/Subscription"
 RUN dotnet build "./Subscription.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish

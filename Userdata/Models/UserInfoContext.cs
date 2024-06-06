@@ -16,12 +16,17 @@ public partial class UserInfoContext : DbContext
     }
 
     public virtual DbSet<UserDatum> UserData { get; set; }
+    
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<UserDatum>(entity =>
         {
-            entity.HasKey(e => e.UserInfoId).HasName("PK__UserData__D07EF2E48BE271BB");
+            entity.HasKey(e => e.UserInfoId)
+                  .HasName("PK__UserData__D07EF2E48BE271BB");
+
+            entity.Property(e => e.UserInfoId)
+                  .ValueGeneratedOnAdd();
         });
 
         OnModelCreatingPartial(modelBuilder);
