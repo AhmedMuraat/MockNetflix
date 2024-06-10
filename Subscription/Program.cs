@@ -50,24 +50,20 @@ builder.Services.Configure<HttpsRedirectionOptions>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddSingleton<RabbitMqPublisher>();
-builder.Services.AddSingleton<RabbitMqConsumer>();
-
-// Configure HTTP request pipeline.
-var app = builder.Build();
-
-if (!builder.Environment.IsDevelopment())
+// Configure Kestrel
+builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-    builder.WebHost.ConfigureKestrel(serverOptions =>
+    if (!builder.Environment.IsDevelopment())
     {
         serverOptions.ListenAnyIP(443, listenOptions =>
         {
             listenOptions.UseHttps("certhttps.pfx", "Password123");
         });
-    });
+    }
+});
 
-    app.UseHttpsRedirection();
-}
+// Build the app
+var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
@@ -75,6 +71,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("MyPolicy");
 app.UseAuthentication();
