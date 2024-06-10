@@ -26,6 +26,23 @@ jobs:
       - name: Install dependencies
         run: dotnet restore ./${{ matrix.project }}/${{ matrix.project }}.csproj
 
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        with:
+          projectBaseDir: ./${{ matrix.project }}
+          args: >
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
+      - name: Snyk Scan
+        uses: snyk/actions/dotnet@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --file=./${{ matrix.project }}/${{ matrix.project }}.csproj
+
       - name: Build
         run: dotnet build --no-restore -c Release ./${{ matrix.project }}/${{ matrix.project }}.csproj
 
