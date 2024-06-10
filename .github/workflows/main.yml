@@ -37,7 +37,10 @@ jobs:
       - name: Authenticate Snyk
         run: snyk auth ${{ secrets.SNYK_TOKEN }}
 
-      - name: Snyk Scan
+      - name: Snyk Monitor
+        run: snyk monitor --file=./${{ matrix.project }}/${{ matrix.project }}.csproj --package-manager=nuget
+
+      - name: Snyk Test
         run: snyk test --file=./${{ matrix.project }}/${{ matrix.project }}.csproj --package-manager=nuget
 
       - name: SonarCloud Scan
