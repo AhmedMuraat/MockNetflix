@@ -39,9 +39,11 @@ jobs:
 
       - name: Snyk Monitor
         run: snyk monitor --file=./${{ matrix.project }}/${{ matrix.project }}.csproj --package-manager=nuget
+        working-directory: ./${{ matrix.project }}
 
       - name: Snyk Test
         run: snyk test --file=./${{ matrix.project }}/${{ matrix.project }}.csproj --package-manager=nuget
+        working-directory: ./${{ matrix.project }}
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
