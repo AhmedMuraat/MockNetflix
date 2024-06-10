@@ -11,6 +11,18 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Kestrel early in the configuration
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    if (!builder.Environment.IsDevelopment())
+    {
+        serverOptions.ListenAnyIP(443, listenOptions =>
+        {
+            listenOptions.UseHttps("certhttps.pfx", "Password123");
+        });
+    }
+});
+
 // Configure Services
 builder.Services.AddHealthChecks()
     .AddCheck("sqlserver", new SqlServerHealthCheck("Server=dbsubscription;Database=Sub;User Id=sa;Password=Sjeemaa12!;TrustServerCertificate=true;"));
@@ -49,18 +61,6 @@ builder.Services.Configure<HttpsRedirectionOptions>(options =>
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-// Configure Kestrel
-builder.WebHost.ConfigureKestrel(serverOptions =>
-{
-    if (!builder.Environment.IsDevelopment())
-    {
-        serverOptions.ListenAnyIP(443, listenOptions =>
-        {
-            listenOptions.UseHttps("certhttps.pfx", "Password123");
-        });
-    }
-});
 
 // Build the app
 var app = builder.Build();
