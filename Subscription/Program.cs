@@ -18,7 +18,7 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
     {
         serverOptions.ListenAnyIP(443, listenOptions =>
         {
-            listenOptions.UseHttps("certhttps.pfx", "Password123");
+            listenOptions.UseHttps("/app/certhttps.pfx", "Password123");
         });
     }
 });
