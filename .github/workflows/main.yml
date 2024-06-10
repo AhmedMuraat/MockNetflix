@@ -17,11 +17,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         name: Check out the repo
+        with:
+          node-version: '20'
 
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0.x'
+          node-version: '20'
 
       - name: Install dependencies
         run: dotnet restore ./${{ matrix.project }}/${{ matrix.project }}.csproj
@@ -34,7 +37,8 @@ jobs:
             -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
             -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Snyk Scan
         uses: snyk/actions/dotnet@master
