@@ -77,21 +77,21 @@ jobs:
 
       - name: Apply Kubernetes manifests - Secrets
         run: |
-          kubectl apply -f secret.yaml
+          kubectl apply -f Kubernetes/secret.yaml
 
       - name: Apply Kubernetes manifests - Databases
         run: |
-          kubectl apply -f persistentvolumeclaim.yaml
-          kubectl apply -f deployment-db.yaml
-          kubectl apply -f deployment-db-userinfo.yaml
+          kubectl apply -f Kubernetes/deployment-db.yaml
+          kubectl apply -f Kubernetes/deployment-db-userinfo.yaml
+          kubectl apply -f Kubernetes/persistentvolumeclaim.yaml
 
       - name: Apply Kubernetes manifests - RabbitMQ
         run: |
-          kubectl apply -f deployment-rabbitmq.yaml
+          kubectl apply -f Kubernetes/deployment-rabbitmq.yaml
 
       - name: Apply Kubernetes manifests - Other Services
         run: |
-          kubectl apply -f deployment-api-gateway.yaml
-          kubectl apply -f deployment-login-api.yaml
-          kubectl apply -f deployment-subscription.yaml
-          kubectl apply -f deployment-userinfo.yaml
+          kubectl apply -f Kubernetes/deployment-api-gateway.yaml
+          kubectl apply -f Kubernetes/deployment-login-api.yaml
+          kubectl apply -f Kubernetes/deployment-subscription.yaml
+          kubectl apply -f Kubernetes/deployment-userinfo.yaml
