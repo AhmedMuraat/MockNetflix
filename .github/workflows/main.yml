@@ -47,7 +47,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: test --file=./${{ matrix.project }}/${{ matrix.project }}.csproj --package-manager=dotnet
+          args: test --file=./${{ matrix.project }}/${{ matrix.project }}.csproj --package-manager=nuget
 
       - name: Build
         run: dotnet build --no-restore -c Release ./${{ matrix.project }}/${{ matrix.project }}.csproj
