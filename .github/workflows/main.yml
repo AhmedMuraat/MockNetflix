@@ -38,11 +38,11 @@ jobs:
         run: snyk auth ${{ secrets.SNYK_TOKEN }}
 
       - name: Snyk Monitor
-        run: snyk monitor --file=./${{ matrix.project }}/${{ matrix.project }}.csproj --package-manager=nuget
+        run: snyk monitor --all-projects
         working-directory: ./${{ matrix.project }}
 
       - name: Snyk Test
-        run: snyk test --file=./${{ matrix.project }}/${{ matrix.project }}.csproj --package-manager=nuget
+        run: snyk test --all-projects
         working-directory: ./${{ matrix.project }}
 
       - name: SonarCloud Scan
