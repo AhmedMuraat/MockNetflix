@@ -51,11 +51,47 @@ jobs:
 
       - name: Build and Push Docker image
         run: |
-          # Use the output from the 'lowercase' step
           LOWERCASE_PROJECT_NAME="${{ steps.lowercase.outputs.project }}"
-          
-          # Build the Docker image
           docker build -t ${{ secrets.DOCKER_USERNAME }}/$LOWERCASE_PROJECT_NAME:latest -f ./${{ matrix.project }}/Dockerfile ./${{ matrix.project }}
-          
-          # Push the Docker image to Docker Hub
           docker push ${{ secrets.DOCKER_USERNAME }}/$LOWERCASE_PROJECT_NAME:latest
+
+  deploy-to-aks:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        name: Check out the repo
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get AKS Credentials
+        run: az aks get-credentials --resource-group Semester6 --name MockNetflix
+
+      - name: Apply Kubernetes manifests - Secrets
+        run: |
+          kubectl apply -f secret.yaml
+
+      - name: Apply Kubernetes manifests - Databases
+        run: |
+          kubectl apply -f persistentvolumeclaim.yaml
+          kubectl apply -f deployment-db.yaml
+          kubectl apply -f deployment-db-userinfo.yaml
+
+      - name: Apply Kubernetes manifests - RabbitMQ
+        run: |
+          kubectl apply -f deployment-rabbitmq.yaml
+
+      - name: Apply Kubernetes manifests - Other Services
+        run: |
+          kubectl apply -f deployment-api-gateway.yaml
+          kubectl apply -f deployment-login-api.yaml
+          kubectl apply -f deployment-subscription.yaml
+          kubectl apply -f deployment-userinfo.yaml
