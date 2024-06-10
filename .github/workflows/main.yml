@@ -31,6 +31,15 @@ jobs:
       - name: Install dependencies
         run: dotnet restore ./${{ matrix.project }}/${{ matrix.project }}.csproj
 
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Authenticate Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk Scan
+        run: snyk test --file=./${{ matrix.project }}/${{ matrix.project }}.csproj --package-manager=nuget
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         with:
@@ -41,13 +50,6 @@ jobs:
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      - name: Snyk Scan
-        uses: snyk/actions/dotnet@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: test --file=./${{ matrix.project }}/${{ matrix.project }}.csproj --package-manager=nuget
 
       - name: Build
         run: dotnet build --no-restore -c Release ./${{ matrix.project }}/${{ matrix.project }}.csproj
