@@ -1,23 +1,13 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.Options;
 using System.Net;
-using System.Web.Http.Cors;
-using AutoMapper;
 using Login.Models;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Data;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.Extensions.Hosting;
-using System;
 using RabbitMQ.Client;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -103,6 +93,7 @@ var app = builder.Build();
 
 app.MapHealthChecks("/health");
 app.UseRouting();
+app.UseAuthorization();
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
@@ -116,7 +107,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
-app.UseAuthorization();
 
 app.UseCors("MyPolicy");
 app.Run();
