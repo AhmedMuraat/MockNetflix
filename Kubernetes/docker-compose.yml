@@ -1,0 +1,114 @@
+version: '3.8'
+services:
+  api-gateway:
+    container_name: api-gateway
+    build:
+      context: ../MockNetflix/ApiGateWay
+    ports:
+      - "5000:8080"
+    depends_on:
+      - login-api
+      - userinfo
+      - subscription-api
+      - rabbitmq
+  login-api:
+    container_name: dotnet_webapi
+    build:
+      context: ../MockNetflix/Login
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "8081:8080"
+    depends_on:
+      - db
+      - rabbitmq
+    volumes:
+      - ./certs:/app/certs  # Map directory containing SSL certificate to the container
+  subscription-api:
+    container_name: subscription_webapi
+    build:
+      context: ../MockNetflix/Subscription
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "8082:8080"
+    depends_on:
+      - dbsubscription
+      - rabbitmq
+    volumes:
+      - ./certs:/app/certs  # Map directory containing SSL certificate to the container
+  userinfo:
+    container_name: Userdata-api
+    build:
+      context: ../MockNetflix/Userdata
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "8090:8080"
+    depends_on:
+      - dbuserinfo
+      - rabbitmq
+    volumes:
+      - ./certs:/app/certs  # Map directory containing SSL certificate to the container
+  db:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: db
+    restart: always
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Ahmed123!
+      - MSSQL_PID=developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - 'Database_Volume:/var/opt/mssql'
+  dbuserinfo:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: db_user_info
+    restart: always
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Sjeemaa12!
+      - MSSQL_PID=developer
+    ports:
+      - "1434:1433"
+    volumes:
+      - 'UserInfo_Database_Volume:/var/opt/mssql'
+  dbsubscription:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: db_user_subscription
+    restart: always
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Sjeemaa12!
+      - MSSQL_PID=developer
+    ports:
+      - "1435:1433"
+    volumes:
+      - 'UserSubscription_Database_Volume:/var/opt/mssql'
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # Default RabbitMQ port
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    volumes:
+      - 'rabbitmq_data:/var/lib/rabbitmq'
+      - 'rabbitmq_config:/etc/rabbitmq'
+      - 'rabbitmq_logs:/var/log/rabbitmq'
+volumes:
+  Database_Volume:
+    name: S6-database_Volume
+  UserInfo_Database_Volume:
+    name: S6-userinfo_Database_Volume
+  UserSubscription_Database_Volume:
+    name: S6-usersubscription_Database_Volume
+  rabbitmq_data:
+    name: rabbitmq_data_volume
+  rabbitmq_config:
+    name: rabbitmq_config_volume
+  rabbitmq_logs:
+    name: rabbitmq_logs_volume

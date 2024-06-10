@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: login-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: login-api
+  template:
+    metadata:
+      labels:
+        app: login-api
+    spec:
+      containers:
+        - name: login-api
+          image: ahmedmuraat/login:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Development
+          volumeMounts:
+            - name: certs
+              mountPath: /app/certs
+      volumes:
+        - name: certs
+          hostPath:
+            path: /path/to/your/certs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: login-api
+spec:
+  selector:
+    app: login-api
+  ports:
+    - protocol: TCP
+      port: 8081
+      targetPort: 8080

@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-userinfo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db-userinfo
+  template:
+    metadata:
+      labels:
+        app: db-userinfo
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: db-userinfo
+          image: mcr.microsoft.com/mssql/server:2019-latest
+          ports:
+            - containerPort: 1433
+          env:
+            - name: ACCEPT_EULA
+              value: "Y"
+            - name: MSSQL_SA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mssql-secrets
+                  key: mssql-sa-password-userinfo
+            - name: MSSQL_PID
+              value: developer
+          volumeMounts:
+            - name: userinfo-database-volume
+              mountPath: /var/opt/mssql
+      volumes:
+        - name: userinfo-database-volume
+          persistentVolumeClaim:
+            claimName: userinfo-mssql-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-userinfo
+spec:
+  selector:
+    app: db-userinfo
+  ports:
+    - protocol: TCP
+      port: 1434
+      targetPort: 1433

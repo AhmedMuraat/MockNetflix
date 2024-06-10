@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: userinfo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: userinfo
+  template:
+    metadata:
+      labels:
+        app: userinfo
+    spec:
+      containers:
+        - name: userinfo
+          image: ahmedmuraat/userdata:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Development
+          volumeMounts:
+            - name: certs
+              mountPath: /app/certs
+      volumes:
+        - name: certs
+          hostPath:
+            path: /path/to/your/certs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: userinfo
+spec:
+  selector:
+    app: userinfo
+  ports:
+    - protocol: TCP
+      port: 8090
+      targetPort: 8080

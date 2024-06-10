@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: subscription
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: subscription
+  template:
+    metadata:
+      labels:
+        app: subscription
+    spec:
+      containers:
+        - name: subscription
+          image: ahmedmuraat/subscription:latest
+          ports:
+            - containerPort: 8082
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Development
+          volumeMounts:
+            - name: certs
+              mountPath: /app/certs
+      volumes:
+        - name: certs
+          hostPath:
+            path: /path/to/your/certs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: subscription
+spec:
+  selector:
+    app: subscription
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 8082
+  type: LoadBalancer
