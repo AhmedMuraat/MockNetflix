@@ -37,6 +37,5 @@ spec:
     app: subscription
   ports:
     - protocol: TCP
-      port: 5000
+      port: 8090
       targetPort: 8082
-  type: LoadBalancer

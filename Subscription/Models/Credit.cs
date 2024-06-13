@@ -14,7 +14,7 @@ public partial class Credit
 
     [Column("ExternalUserID")]
     [StringLength(50)]
-    public string ExternalUserId { get; set; } = null!;
+    public int ExternalUserId { get; set; }
 
     public int Amount { get; set; }
 

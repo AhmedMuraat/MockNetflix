@@ -14,8 +14,7 @@ public partial class UserSubscription
     public int SubscriptionId { get; set; }
 
     [Column("ExternalUserID")]
-    [StringLength(50)]
-    public string ExternalUserId { get; set; } = null!;
+    public int ExternalUserId { get; set; }
 
     [Column("PlanID")]
     public int PlanId { get; set; }
