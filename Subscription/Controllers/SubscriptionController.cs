@@ -5,72 +5,77 @@ using Subscription.Models;
 namespace Subscription.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
-    public class SubscriptionController : ControllerBase
+    [Route("api/[controller]")]
+    public class SubscriptionController : Controller
     {
         private readonly SubContext _context;
-        private readonly RabbitMqPublisher _rabbitMqPublisher;
 
-        public SubscriptionController(SubContext context, RabbitMqPublisher rabbitMqPublisher)
+        public SubscriptionController(SubContext context)
         {
             _context = context;
-            _rabbitMqPublisher = rabbitMqPublisher;
         }
 
         [HttpPost("buy-credits")]
-        public async Task<IActionResult> BuyCredits(int userId, int credits)
+        public async Task<IActionResult> BuyCredits(string externalUserId, int amount)
         {
-            var userCredits = _context.Credits.FirstOrDefault(c => c.UserId == userId);
-            if (userCredits == null)
+            var credits = new Credit
             {
-                userCredits = new Credit
-                {
-                    UserId = userId,
-                    AvailableCredits = credits
-                };
-                _context.Credits.Add(userCredits);
-            }
-            else
-            {
-                userCredits.AvailableCredits += credits;
-                _context.Credits.Update(userCredits);
-            }
+                ExternalUserId = externalUserId,
+                Amount = amount,
+                PurchaseDate = DateOnly.FromDateTime(DateTime.UtcNow)
+            };
+
+            _context.Credits.Add(credits);
             await _context.SaveChangesAsync();
 
-            var message = $"User {userId} bought {credits} credits.";
-            _rabbitMqPublisher.PublishMessage(message);
-
-            return Ok(userCredits);
+            return Ok(credits);
         }
 
         [HttpPost("subscribe")]
-        public async Task<IActionResult> Subscribe(int userId)
+        public async Task<IActionResult> Subscribe(string externalUserId, int planId)
         {
-            const int subscriptionCost = 10;
-            var userCredits = _context.Credits.FirstOrDefault(c => c.UserId == userId);
-            if (userCredits == null || userCredits.AvailableCredits < subscriptionCost)
+            var plan = await _context.SubscriptionPlans.FindAsync(planId);
+            if (plan == null)
             {
-                return BadRequest("Insufficient credits.");
+                return NotFound("Plan not found");
             }
 
-            var subscription = new Models.Subscription
+            int requiredCredits = plan.Duration.ToLower() == "monthly" ? 10 : 100;
+
+            var userCredits = await _context.Credits
+                .Where(c => c.ExternalUserId == externalUserId)
+                .SumAsync(c => c.Amount);
+
+            if (userCredits < requiredCredits)
             {
-                UserId = userId,
-                SubscriptionType = "Premium",
-                Credits = subscriptionCost,
-                SubscriptionStart = DateOnly.FromDateTime(DateTime.UtcNow),
-                SubscriptionEnd = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(1))
+                return BadRequest("Insufficient credits");
+            }
+
+            var endDateTime = plan.Duration.ToLower() == "monthly" ? DateTime.UtcNow.AddMonths(1) : DateTime.UtcNow.AddYears(1);
+            var endDate = DateOnly.FromDateTime(endDateTime);
+
+            var userSubscription = new UserSubscription
+            {
+                ExternalUserId = externalUserId,
+                PlanId = planId,
+                StartDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                EndDate = endDate
             };
 
-            userCredits.AvailableCredits -= subscriptionCost;
-            _context.Credits.Update(userCredits);
-            _context.Subscriptions.Add(subscription);
+            _context.UserSubscriptions.Add(userSubscription);
+
+            // Deduct the credits
+            var remainingCredits = new Credit
+            {
+                ExternalUserId = externalUserId,
+                Amount = -requiredCredits,
+                PurchaseDate = DateOnly.FromDateTime(DateTime.UtcNow)
+            };
+            _context.Credits.Add(remainingCredits);
+
             await _context.SaveChangesAsync();
 
-            var message = $"User {userId} subscribed to Premium plan.";
-            _rabbitMqPublisher.PublishMessage(message);
-
-            return Ok(subscription);
+            return Ok(userSubscription);
         }
     }
 }

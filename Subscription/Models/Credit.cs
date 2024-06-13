@@ -8,11 +8,15 @@ namespace Subscription.Models;
 
 public partial class Credit
 {
-    //test
     [Key]
+    [Column("CreditsID")]
     public int CreditsId { get; set; }
 
-    public int? UserId { get; set; }
+    [Column("ExternalUserID")]
+    [StringLength(50)]
+    public string ExternalUserId { get; set; } = null!;
 
-    public int? AvailableCredits { get; set; }
+    public int Amount { get; set; }
+
+    public DateOnly PurchaseDate { get; set; }
 }

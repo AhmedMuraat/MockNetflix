@@ -36,8 +36,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllers();
-builder.Services.AddSingleton<RabbitMqPublisher>();
-builder.Services.AddSingleton<RabbitMqConsumer>();
+
 builder.Services.AddDbContext<SubContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
