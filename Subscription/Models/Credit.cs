@@ -8,6 +8,7 @@ namespace Subscription.Models;
 
 public partial class Credit
 {
+    //test
     [Key]
     public int CreditsId { get; set; }
 
