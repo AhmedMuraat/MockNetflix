@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace Subscribe.Models;
@@ -25,5 +26,6 @@ public partial class UserSubscription
 
     [ForeignKey("PlanId")]
     [InverseProperty("UserSubscriptions")]
+    [JsonIgnore]
     public virtual SubscriptionPlan Plan { get; set; } = null!;
 }
