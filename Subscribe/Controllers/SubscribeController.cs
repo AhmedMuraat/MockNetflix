@@ -175,6 +175,21 @@ namespace Subscribe.Controllers
             return Ok(userSubscription);
         }
 
+        [HttpGet("has-premium/{userId}")]
+        public async Task<IActionResult> HasPremiumSubscription(int userId)
+        {
+            var hasPremium = await _context.UserSubscriptions
+                .AnyAsync(us => us.ExternalUserId == userId && us.EndDate >= DateOnly.FromDateTime(DateTime.UtcNow));
+
+            var response = new
+            {
+                UserId = userId,
+                HasPremium = hasPremium
+            };
+
+            return Ok(response);
+        }
+
         private async Task<User> GetUserById(int userId)
         {
             try

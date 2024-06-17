@@ -75,6 +75,126 @@
       "AddHeadersToRequest": {
         "Authorization": "Claims[Authorization]"
       }
+    },
+    {
+      "DownstreamPathTemplate": "/api/Login",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "login-api",
+          "Port": 8081
+        }
+      ],
+      "UpstreamPathTemplate": "/api/login",
+      "UpstreamHttpMethod": [ "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Login/RefreshToken",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "login-api",
+          "Port": 8081
+        }
+      ],
+      "UpstreamPathTemplate": "/api/login/refresh-token",
+      "UpstreamHttpMethod": [ "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Login/GetUserByAccessToken",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "login-api",
+          "Port": 8081
+        }
+      ],
+      "UpstreamPathTemplate": "/api/login/get-user-by-access-token",
+      "UpstreamHttpMethod": [ "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Login/CreateUser",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "login-api",
+          "Port": 8081
+        }
+      ],
+      "UpstreamPathTemplate": "/api/login/create-user",
+      "UpstreamHttpMethod": [ "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Login/DeleteUser/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "login-api",
+          "Port": 8081
+        }
+      ],
+      "UpstreamPathTemplate": "/api/login/delete-user/{id}",
+      "UpstreamHttpMethod": [ "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Registration/{username}&{name}&{lastName}&{email}&{password}&{address}&{year:int}&{month:int}&{day:int}&{role:int}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "login-api",
+          "Port": 8081
+        }
+      ],
+      "UpstreamPathTemplate": "/api/registration/{username}&{name}&{lastName}&{email}&{password}&{address}&{year:int}&{month:int}&{day:int}&{role:int}",
+      "UpstreamHttpMethod": [ "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Subscribe/buy-credits",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "subscribe-api",
+          "Port": 8082
+        }
+      ],
+      "UpstreamPathTemplate": "/api/subscribe/buy-credits",
+      "UpstreamHttpMethod": [ "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Subscribe/total-credits/{userId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "subscribe-api",
+          "Port": 8082
+        }
+      ],
+      "UpstreamPathTemplate": "/api/subscribe/total-credits/{userId}",
+      "UpstreamHttpMethod": [ "GET" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Subscribe/subscribe",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "subscribe-api",
+          "Port": 8082
+        }
+      ],
+      "UpstreamPathTemplate": "/api/subscribe/subscribe",
+      "UpstreamHttpMethod": [ "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Subscribe/has-premium/{userId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "subscribe-api",
+          "Port": 8082
+        }
+      ],
+      "UpstreamPathTemplate": "/api/subscribe/has-premium/{userId}",
+      "UpstreamHttpMethod": [ "GET" ]
     }
   ],
   "GlobalConfiguration": {
