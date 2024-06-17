@@ -33,9 +33,6 @@
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
-      },
-      "AddHeadersToRequest": {
-        "Authorization": "Claims[Authorization]"
       }
     },
     {
