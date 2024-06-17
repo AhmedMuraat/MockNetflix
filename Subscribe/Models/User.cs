@@ -1,4 +1,4 @@
-﻿namespace Subscription.Models
+﻿namespace Subscribe.Models
 {
     public class User
     {
