@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace Subscription.Models;
+namespace Subscribe.Models;
 
 public partial class SubContext : DbContext
 {
@@ -20,7 +20,6 @@ public partial class SubContext : DbContext
     public virtual DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
 
     public virtual DbSet<UserSubscription> UserSubscriptions { get; set; }
-
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

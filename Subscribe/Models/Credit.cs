@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace Subscription.Models;
+namespace Subscribe.Models;
 
 public partial class Credit
 {
@@ -14,7 +14,7 @@ public partial class Credit
 
     [Column("ExternalUserID")]
     [StringLength(50)]
-    public int ExternalUserId { get; set; }
+    public string ExternalUserId { get; set; } = null!;
 
     public int Amount { get; set; }
 

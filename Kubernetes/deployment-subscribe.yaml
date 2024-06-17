@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: subscription
+  name: subscribe
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: subscription
+      app: subscribe
   template:
     metadata:
       labels:
-        app: subscription
+        app: subscribe
     spec:
       containers:
-        - name: subscription
-          image: ahmedmuraat/subscription:latest
+        - name: subscribe
+          image: ahmedmuraat/subscribe:latest
           ports:
             - containerPort: 8082
           env:
@@ -31,10 +31,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: subscription
+  name: subscribe
 spec:
   selector:
-    app: subscription
+    app: subscribe
   ports:
     - protocol: TCP
       port: 8090

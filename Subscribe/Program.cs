@@ -5,23 +5,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
-using Subscription.Models;
+using RabbitMQ.Client;
+using Subscribe.Models;
+using Subscribe.Rabbit;
 using System.Data;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Configure Kestrel early in the configuration
-builder.WebHost.ConfigureKestrel(serverOptions =>
-{
-    if (!builder.Environment.IsDevelopment())
-    {
-        serverOptions.ListenAnyIP(443, listenOptions =>
-        {
-            listenOptions.UseHttps("/app/certhttps.pfx", "Password123");
-        });
-    }
-});
 
 // Configure Services
 builder.Services.AddHealthChecks()
@@ -37,9 +27,26 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddControllers();
 
+// Configure RabbitMQ
+builder.Services.AddSingleton(sp =>
+{
+    var factory = new ConnectionFactory
+    {
+        HostName = builder.Configuration["RabbitMQ:HostName"],
+        UserName = builder.Configuration["RabbitMQ:UserName"],
+        Password = builder.Configuration["RabbitMQ:Password"]
+    };
+    return factory.CreateConnection().CreateModel();
+});
+
+// Configure DbContext
 builder.Services.AddDbContext<SubContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Add hosted service for UserCreatedConsumer
+builder.Services.AddHostedService<RabbitMqConsumerService>();
+
+// Configure JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -52,17 +59,31 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+// Configure HTTPS redirection
 builder.Services.Configure<HttpsRedirectionOptions>(options =>
 {
     options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
     options.HttpsPort = 443;
 });
 
+// Add Swagger for API documentation
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Build the app
 var app = builder.Build();
+
+// Configure the HTTP request pipeline
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+    builder.WebHost.ConfigureKestrel(serverOptions =>
+    {
+        serverOptions.ListenAnyIP(443, listenOptions =>
+        {
+            listenOptions.UseHttps("certhttps.pfx", "Password123");
+        });
+    });
+}
 
 if (app.Environment.IsDevelopment())
 {
@@ -70,13 +91,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("MyPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();  // This is essential to place after UseAuthorization
+app.MapControllers(); // This is essential to place after UseAuthorization
 app.MapHealthChecks("/health");
 
 app.Run();

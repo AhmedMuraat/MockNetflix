@@ -9,7 +9,7 @@ services:
     depends_on:
       - login-api
       - userinfo
-      - subscription-api
+      - subscribe-api
       - rabbitmq
   login-api:
     container_name: dotnet_webapi
@@ -24,10 +24,10 @@ services:
       - rabbitmq
     volumes:
       - ./certs:/app/certs  # Map directory containing SSL certificate to the container
-  subscription-api:
-    container_name: subscription_webapi
+  subscribe-api:
+    container_name: subscribe_webapi
     build:
-      context: ../MockNetflix/Subscription
+      context: ../MockNetflix/Subscribe
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     ports:

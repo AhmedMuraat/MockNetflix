@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace Subscription.Models;
+namespace Subscribe.Models;
 
 [Table("UserSubscription")]
 public partial class UserSubscription
