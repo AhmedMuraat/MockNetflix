@@ -27,6 +27,9 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddControllers();
 
+// Register HttpClient
+builder.Services.AddHttpClient();
+
 // Configure RabbitMQ
 builder.Services.AddSingleton(sp =>
 {
@@ -65,10 +68,10 @@ builder.Services.Configure<HttpsRedirectionOptions>(options =>
     options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
     options.HttpsPort = 443;
 });
-
 // Add Swagger for API documentation
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 
 var app = builder.Build();
 
@@ -88,7 +91,10 @@ if (!app.Environment.IsDevelopment())
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+    });
 }
 
 app.UseRouting();

@@ -7,8 +7,8 @@ using RabbitMQ.Client;
 
 namespace Subscribe.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
     public class SubscribeController : Controller
     {
         private readonly SubContext _context;
@@ -16,12 +16,13 @@ namespace Subscribe.Controllers
         private readonly ILogger<SubscribeController> _logger;
         private readonly HttpClient _httpClient;
 
-        public SubscribeController(SubContext context, IModel channel, ILogger<SubscribeController> logger, HttpClient httpClient)
+        public SubscribeController(SubContext context, IModel channel, ILogger<SubscribeController> logger, IHttpClientFactory httpClientFactory)
         {
             _context = context;
             _channel = channel;
             _logger = logger;
-            _httpClient = httpClient;
+            _httpClient = httpClientFactory.CreateClient();
+            _httpClient.BaseAddress = new Uri("http://userinfo:8080"); // Set base address to the service name
         }
 
         [HttpPost("buy-credits")]
@@ -33,25 +34,67 @@ namespace Subscribe.Controllers
                 return NotFound("User not found");
             }
 
-            var credits = new Credit
-            {
-                ExternalUserId = user.UserId,
-                Amount = amount,
-                PurchaseDate = DateOnly.FromDateTime(DateTime.UtcNow)
-            };
+            var existingCredits = await _context.Credits.FirstOrDefaultAsync(c => c.ExternalUserId == userId);
 
-            _context.Credits.Add(credits);
+            if (existingCredits != null)
+            {
+                existingCredits.Amount += amount;
+                existingCredits.PurchaseDate = DateOnly.FromDateTime(DateTime.UtcNow); // Update the purchase date if needed
+            }
+            else
+            {
+                var credits = new Credit
+                {
+                    ExternalUserId = userId,
+                    Amount = amount,
+                    PurchaseDate = DateOnly.FromDateTime(DateTime.UtcNow)
+                };
+
+                _context.Credits.Add(credits);
+            }
+
             await _context.SaveChangesAsync();
 
-            SendMessageToQueue("buy-credits-queue", credits);
+            var updatedCredits = await _context.Credits.Where(c => c.ExternalUserId == userId).SumAsync(c => c.Amount);
 
-            return Ok(credits);
+            var response = new
+            {
+                UserId = userId,
+                TotalCredits = updatedCredits
+            };
+
+            SendMessageToQueue("buy-credits-queue", response);
+
+            return Ok(response);
         }
+
+        [HttpGet("total-credits/{userId}")]
+        public async Task<IActionResult> GetTotalCredits(int userId)
+        {
+            var totalCredits = await _context.Credits
+                .Where(c => c.ExternalUserId == userId)
+                .SumAsync(c => c.Amount);
+
+            if (totalCredits == 0)
+            {
+                return NotFound("User not found or no credits available");
+            }
+
+            var response = new
+            {
+                UserId = userId,
+                TotalCredits = totalCredits
+            };
+
+            return Ok(response);
+        }
+
 
         [HttpPost("subscribe")]
         public async Task<IActionResult> Subscribe(int userId, int planId)
         {
             var user = await GetUserById(userId);
+
             if (user == null)
             {
                 return NotFound("User not found");
@@ -66,7 +109,7 @@ namespace Subscribe.Controllers
             int requiredCredits = plan.Duration.ToLower() == "monthly" ? 10 : 100;
 
             var userCredits = await _context.Credits
-                .Where(c => c.ExternalUserId == user.UserId)
+                .Where(c => c.ExternalUserId == userId)
                 .SumAsync(c => c.Amount);
 
             if (userCredits < requiredCredits)
@@ -79,14 +122,53 @@ namespace Subscribe.Controllers
 
             var userSubscription = new UserSubscription
             {
-                ExternalUserId = user.UserId,
+                ExternalUserId = userId,
                 PlanId = planId,
                 StartDate = DateOnly.FromDateTime(DateTime.UtcNow),
                 EndDate = endDate
             };
 
-            _context.UserSubscriptions.Add(userSubscription);
-            await _context.SaveChangesAsync();
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    // Deduct the credits
+                    var creditsToDeduct = requiredCredits;
+                    var creditsList = await _context.Credits
+                        .Where(c => c.ExternalUserId == userId)
+                        .OrderBy(c => c.PurchaseDate)
+                        .ToListAsync();
+
+                    foreach (var credit in creditsList)
+                    {
+                        if (creditsToDeduct <= 0)
+                            break;
+
+                        if (credit.Amount > creditsToDeduct)
+                        {
+                            credit.Amount -= creditsToDeduct;
+                            creditsToDeduct = 0;
+                        }
+                        else
+                        {
+                            creditsToDeduct -= credit.Amount;
+                            credit.Amount = 0;
+                        }
+
+                        _context.Credits.Update(credit);
+                    }
+
+                    _context.UserSubscriptions.Add(userSubscription);
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    _logger.LogError(ex, "Error processing subscription for user ID {UserId} and plan ID {PlanId}", userId, planId);
+                    return StatusCode(500, "Internal server error");
+                }
+            }
 
             SendMessageToQueue("subscribe-queue", userSubscription);
 
@@ -97,15 +179,20 @@ namespace Subscribe.Controllers
         {
             try
             {
-                var response = await _httpClient.GetAsync($"http://localhost:8090/api/Users/{userId}");
+                var response = await _httpClient.GetAsync($"/api/Users/{userId}");
                 if (response.IsSuccessStatusCode)
                 {
+                    _logger.LogInformation("User found with ID {UserId}", userId);
                     return await response.Content.ReadFromJsonAsync<User>();
+                }
+                else
+                {
+                    _logger.LogWarning("User with ID {UserId} not found. Status code: {StatusCode}", userId, response.StatusCode);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching user details from Login service");
+                _logger.LogError(ex, "Error fetching user details from Login service for user ID {UserId}");
             }
             return null;
         }
