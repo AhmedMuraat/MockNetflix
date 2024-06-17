@@ -82,7 +82,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "login-api",
-          "Port": 8081
+          "Port": 8080
         }
       ],
       "UpstreamPathTemplate": "/api/login",
@@ -94,7 +94,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "login-api",
-          "Port": 8081
+          "Port": 8080
         }
       ],
       "UpstreamPathTemplate": "/api/login/refresh-token",
@@ -106,7 +106,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "login-api",
-          "Port": 8081
+          "Port": 8080
         }
       ],
       "UpstreamPathTemplate": "/api/login/get-user-by-access-token",
@@ -118,7 +118,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "login-api",
-          "Port": 8081
+          "Port": 8080
         }
       ],
       "UpstreamPathTemplate": "/api/login/create-user",
@@ -130,7 +130,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "login-api",
-          "Port": 8081
+          "Port": 8080
         }
       ],
       "UpstreamPathTemplate": "/api/login/delete-user/{id}",
@@ -142,7 +142,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "login-api",
-          "Port": 8081
+          "Port": 8080
         }
       ],
       "UpstreamPathTemplate": "/api/registration/{username}&{name}&{lastName}&{email}&{password}&{address}&{year:int}&{month:int}&{day:int}&{role:int}",
@@ -154,7 +154,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "subscribe-api",
-          "Port": 8082
+          "Port": 8080
         }
       ],
       "UpstreamPathTemplate": "/api/subscribe/buy-credits",
@@ -166,7 +166,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "subscribe-api",
-          "Port": 8082
+          "Port": 8080
         }
       ],
       "UpstreamPathTemplate": "/api/subscribe/total-credits/{userId}",
@@ -178,7 +178,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "subscribe-api",
-          "Port": 8082
+          "Port": 8080
         }
       ],
       "UpstreamPathTemplate": "/api/subscribe/subscribe",
@@ -190,7 +190,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "subscribe-api",
-          "Port": 8082
+          "Port": 8080
         }
       ],
       "UpstreamPathTemplate": "/api/subscribe/has-premium/{userId}",
