@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [ApiGateWay, Login, Userdata, Subscription]
+        project: [ApiGateWay, Login, Userdata, Subscribe]
     steps:
       - uses: actions/checkout@v3
         name: Check out the repo
@@ -128,5 +128,5 @@ jobs:
         run: |
           kubectl apply -f Kubernetes/deployment-api-gateway.yaml
           kubectl apply -f Kubernetes/deployment-login-api.yaml
-          kubectl apply -f Kubernetes/deployment-subscription.yaml
+          kubectl apply -f Kubernetes/deployment-subscribe.yaml
           kubectl apply -f Kubernetes/deployment-userinfo.yaml
