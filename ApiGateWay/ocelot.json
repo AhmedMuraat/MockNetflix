@@ -14,9 +14,6 @@
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
-      },
-      "AddHeadersToRequest": {
-        "Authorization": "Claims[Authorization]"
       }
     },
     {
@@ -49,9 +46,6 @@
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
-      },
-      "AddHeadersToRequest": {
-        "Authorization": "Claims[Authorization]"
       }
     },
     {
@@ -68,9 +62,6 @@
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
-      },
-      "AddHeadersToRequest": {
-        "Authorization": "Claims[Authorization]"
       }
     },
     {

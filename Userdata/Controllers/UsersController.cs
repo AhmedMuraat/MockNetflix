@@ -19,7 +19,7 @@ namespace Userdata.Controllers
 
             // GET: api/UserInfo
             [HttpGet]
-            [Authorize]
+            
             public async Task<IActionResult> GetUsersInfo()
             {
                 var usersInfo = await _context.UserData.ToListAsync();
