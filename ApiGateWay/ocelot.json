@@ -10,14 +10,7 @@
         }
       ],
       "UpstreamPathTemplate": "/api/users",
-      "UpstreamHttpMethod": [ "GET" ],
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer",
-        "AllowedScopes": []
-      },
-      "AddHeadersToRequest": {
-        "Authorization": "Claims[Authorization]"
-      }
+      "UpstreamHttpMethod": [ "GET" ]
     },
     {
       "DownstreamPathTemplate": "/api/Users/{id}",
@@ -29,14 +22,7 @@
         }
       ],
       "UpstreamPathTemplate": "/api/users/{id}",
-      "UpstreamHttpMethod": [ "GET" ],
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer",
-        "AllowedScopes": []
-      },
-      "AddHeadersToRequest": {
-        "Authorization": "Claims[Authorization]"
-      }
+      "UpstreamHttpMethod": [ "GET" ]
     },
     {
       "DownstreamPathTemplate": "/api/Users",
@@ -48,14 +34,7 @@
         }
       ],
       "UpstreamPathTemplate": "/api/users",
-      "UpstreamHttpMethod": [ "POST" ],
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer",
-        "AllowedScopes": []
-      },
-      "AddHeadersToRequest": {
-        "Authorization": "Claims[Authorization]"
-      }
+      "UpstreamHttpMethod": [ "POST" ]
     },
     {
       "DownstreamPathTemplate": "/api/Users/{id}",
@@ -67,14 +46,7 @@
         }
       ],
       "UpstreamPathTemplate": "/api/users/{id}",
-      "UpstreamHttpMethod": [ "PUT", "DELETE" ],
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer",
-        "AllowedScopes": []
-      },
-      "AddHeadersToRequest": {
-        "Authorization": "Claims[Authorization]"
-      }
+      "UpstreamHttpMethod": [ "PUT", "DELETE" ]
     }
   ],
   "GlobalConfiguration": {
