@@ -6,7 +6,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "userinfo",
-          "Port": 8080
+          "Port": 8090
         }
       ],
       "UpstreamPathTemplate": "/api/users",
@@ -18,7 +18,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "userinfo",
-          "Port": 8080
+          "Port": 8090
         }
       ],
       "UpstreamPathTemplate": "/api/users/{id}",
@@ -30,7 +30,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "userinfo",
-          "Port": 8080
+          "Port": 8090
         }
       ],
       "UpstreamPathTemplate": "/api/users",
@@ -42,7 +42,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "userinfo",
-          "Port": 8080
+          "Port": 8090
         }
       ],
       "UpstreamPathTemplate": "/api/users/{id}",
