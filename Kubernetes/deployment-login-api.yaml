@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: login-api
+  name: loginapi
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: login-api
+      app: loginapi
   template:
     metadata:
       labels:
-        app: login-api
+        app: loginapi
     spec:
       containers:
-        - name: login-api
+        - name: loginapi
           image: ahmedmuraat/login:latest
           ports:
             - containerPort: 8080
@@ -31,10 +31,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: login-api
+  name: loginapi
 spec:
   selector:
-    app: login-api
+    app: loginapi
   ports:
     - protocol: TCP
       port: 8090
