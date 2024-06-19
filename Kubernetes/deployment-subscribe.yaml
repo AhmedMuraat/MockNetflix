@@ -16,7 +16,7 @@ spec:
         - name: subscribe
           image: ahmedmuraat/subscribe:latest
           ports:
-            - containerPort: 8082
+            - containerPort: 8080
           env:
             - name: ASPNETCORE_ENVIRONMENT
               value: Development
@@ -37,6 +37,5 @@ spec:
     app: subscribe
   ports:
     - protocol: TCP
-      port: 8091
-      targetPort: 8082
-  type: LoadBalancer
+      port: 8081
+      targetPort: 8080
