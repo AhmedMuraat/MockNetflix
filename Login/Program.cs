@@ -10,6 +10,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Data;
 using RabbitMQ.Client;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Login.Handlers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -136,7 +137,7 @@ app.Use(async (context, next) =>
         await responseBody.CopyToAsync(originalBodyStream);
     }
 });
-
+app.UseRequestResponseLogging();
 app.UseRouting();
 app.UseCors("MyPolicy");
 app.UseAuthentication();

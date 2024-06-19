@@ -32,6 +32,11 @@ namespace Login.Controllers
         {
             try
             {
+                if (user == null)
+                {
+                    return BadRequest("Invalid client request");
+                }
+
                 var user1 = await _dbContext.Users.Where(u => u.Email == user.Email).FirstOrDefaultAsync();
 
                 if (user1 == null || !Password.controlHash(user.Password, user1.Password))
@@ -40,27 +45,30 @@ namespace Login.Controllers
                     return BadRequest("Username or password is incorrect");
                 }
 
+                // Generate refresh token
                 RefreshToken refreshToken = GenerateRefreshToken();
                 user1.RefreshTokens.Add(refreshToken);
                 await _dbContext.SaveChangesAsync();
 
+                // Create user with token
                 var userWithToken = new UserWithToken(user1)
                 {
                     RefreshToken = refreshToken.Token,
                     AccessToken = GenerateAccessToken(user1.Id) // Generate and assign the access token here
                 };
 
-                return userWithToken;
+                return Ok(userWithToken); // Ensure we return an Ok response
             }
             catch (Exception ex)
             {
                 // Log the exception for debugging purposes
                 Console.WriteLine($"Exception: {ex.Message}");
 
-                // Return a 500 Internal Server Error response with an appropriate error message
+                // Return a 500 Internal Server Error response with a message
                 return StatusCode(500, "An error occurred while processing your request");
             }
         }
+
 
         // GET: api/Users
         [HttpPost("RefreshToken")]
