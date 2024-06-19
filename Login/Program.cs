@@ -111,6 +111,21 @@ app.UseAuthentication();
 app.UseCors("MyPolicy");
 app.Run();
 
+var connectionString = "Server=tcp:mocknetflixserver.database.windows.net,1433;Database=NetflixLogin;User Id=I468134@fontysict.nl;Password=sjeemaa1;Encrypt=True;TrustServerCertificate=False;MultipleActiveResultSets=False;Authentication='Active Directory Password';";
+
+using (SqlConnection connection = new SqlConnection(connectionString))
+{
+    try
+    {
+        connection.Open();
+        Console.WriteLine("Connection successful!");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Connection failed: {ex.Message}");
+    }
+}
+
 public class SqlServerHealthCheck : IHealthCheck
 {
     private readonly string _connectionString;

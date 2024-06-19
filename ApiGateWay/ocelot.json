@@ -18,7 +18,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "userinfo",
-          "Port": 8090
+          "Port": 8080
         }
       ],
       "UpstreamPathTemplate": "/api/users/{id}",
