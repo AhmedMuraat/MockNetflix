@@ -125,7 +125,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "subscribe-api",
+          "Host": "subscribe",
           "Port": 8090
         }
       ],
@@ -137,7 +137,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "subscribe-api",
+          "Host": "subscribe",
           "Port": 8090
         }
       ],
@@ -149,7 +149,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "subscribe-api",
+          "Host": "subscribe",
           "Port": 8090
         }
       ],
@@ -161,7 +161,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "subscribe-api",
+          "Host": "subscribe",
           "Port": 8090
         }
       ],
