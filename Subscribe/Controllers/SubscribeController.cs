@@ -25,7 +25,7 @@ namespace Subscribe.Controllers
             _httpClient.BaseAddress = new Uri("http://userinfo:8080"); // Set base address to the service name
         }
 
-        [HttpPost("buy-credits")]
+        [HttpPost("buycredits")]
         public async Task<IActionResult> BuyCredits(int userId, int amount)
         {
             var user = await GetUserById(userId);
@@ -68,7 +68,7 @@ namespace Subscribe.Controllers
             return Ok(response);
         }
 
-        [HttpGet("total-credits/{userId}")]
+        [HttpGet("totalcredits/{userId}")]
         public async Task<IActionResult> GetTotalCredits(int userId)
         {
             var totalCredits = await _context.Credits
@@ -175,7 +175,7 @@ namespace Subscribe.Controllers
             return Ok(userSubscription);
         }
 
-        [HttpGet("has-premium/{userId}")]
+        [HttpGet("haspremium/{userId}")]
         public async Task<IActionResult> HasPremiumSubscription(int userId)
         {
             var hasPremium = await _context.UserSubscriptions
