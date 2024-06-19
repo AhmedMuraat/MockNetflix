@@ -28,35 +28,38 @@ namespace Login.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<User>> LoginUser([FromBody] User user)
+        public async Task<ActionResult<UserWithToken>> LoginUser([FromBody] User user)
         {
-
-            var user1 = await _dbContext.Users.Where(u => u.Email == user.Email).FirstOrDefaultAsync();
-
-            if (user == null || !Password.controlHash(user.Password, user1.Password))
-                throw new Exception("Username or password is incorrect");
-
-            UserWithToken userWithToken = null;
-
-            if (user1 != null)
+            try
             {
+                var user1 = await _dbContext.Users.Where(u => u.Email == user.Email).FirstOrDefaultAsync();
+
+                if (user1 == null || !Password.controlHash(user.Password, user1.Password))
+                {
+                    // Return a 400 Bad Request response with an appropriate error message
+                    return BadRequest("Username or password is incorrect");
+                }
+
                 RefreshToken refreshToken = GenerateRefreshToken();
                 user1.RefreshTokens.Add(refreshToken);
                 await _dbContext.SaveChangesAsync();
 
+                var userWithToken = new UserWithToken(user1)
+                {
+                    RefreshToken = refreshToken.Token,
+                    AccessToken = GenerateAccessToken(user1.Id) // Generate and assign the access token here
+                };
 
-                userWithToken = new UserWithToken(user1);
-                userWithToken.RefreshToken = refreshToken.Token;
+                return userWithToken;
             }
-
-            if (userWithToken == null)
+            catch (Exception ex)
             {
-                return NotFound();
-            }
+                // Log the exception for debugging purposes
+                Console.WriteLine($"Exception: {ex.Message}");
 
-            //sign your token here here..
-            userWithToken.AccessToken = GenerateAccessToken(user1.Id);
-            return userWithToken;
+                // Return a 500 Internal Server Error response with an appropriate error message
+                return StatusCode(500, "An error occurred while processing your request");
+            }
         }
 
         // GET: api/Users
