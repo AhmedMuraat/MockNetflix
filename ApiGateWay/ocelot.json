@@ -121,7 +121,7 @@
       "UpstreamHttpMethod": [ "POST" ]
     },
     {
-      "DownstreamPathTemplate": "/api/Subscribe/buy-credits",
+      "DownstreamPathTemplate": "/api/Subscribe/buycredits",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -129,11 +129,11 @@
           "Port": 8090
         }
       ],
-      "UpstreamPathTemplate": "/api/subscribe/buy-credits",
+      "UpstreamPathTemplate": "/api/subscribe/buycredits",
       "UpstreamHttpMethod": [ "POST" ]
     },
     {
-      "DownstreamPathTemplate": "/api/Subscribe/total-credits/{userId}",
+      "DownstreamPathTemplate": "/api/Subscribe/totalcredits/{userId}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -141,7 +141,7 @@
           "Port": 8090
         }
       ],
-      "UpstreamPathTemplate": "/api/subscribe/total-credits/{userId}",
+      "UpstreamPathTemplate": "/api/subscribe/totalcredits/{userId}",
       "UpstreamHttpMethod": [ "GET" ]
     },
     {
@@ -157,7 +157,7 @@
       "UpstreamHttpMethod": [ "POST" ]
     },
     {
-      "DownstreamPathTemplate": "/api/Subscribe/has-premium/{userId}",
+      "DownstreamPathTemplate": "/api/Subscribe/haspremium/{userId}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -165,7 +165,7 @@
           "Port": 8090
         }
       ],
-      "UpstreamPathTemplate": "/api/subscribe/has-premium/{userId}",
+      "UpstreamPathTemplate": "/api/subscribe/haspremium/{userId}",
       "UpstreamHttpMethod": [ "GET" ]
     }
   ],
