@@ -14,7 +14,7 @@ namespace Login.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class LoginController : Controller
+    public class LoginController : ControllerBase
     {
         private readonly NetflixLoginContext _dbContext;
         private readonly JWTSettings _jwtSettings;

@@ -9,7 +9,7 @@ namespace Subscribe.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class SubscribeController : Controller
+    public class SubscribeController : ControllerBase
     {
         private readonly SubContext _context;
         private readonly IModel _channel;
