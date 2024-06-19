@@ -37,5 +37,5 @@ spec:
     app: loginapi
   ports:
     - protocol: TCP
-      port: 8091
+      port: 8090
       targetPort: 8080
