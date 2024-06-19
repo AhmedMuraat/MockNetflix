@@ -54,7 +54,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "loginapi",
-          "Port": 8090
+          "Port": 8091
         }
       ],
       "UpstreamPathTemplate": "/api/login",
@@ -66,7 +66,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "loginapi",
-          "Port": 8090
+          "Port": 8091
         }
       ],
       "UpstreamPathTemplate": "/api/login/refreshToken",
@@ -78,7 +78,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "loginapi",
-          "Port": 8090
+          "Port": 8091
         }
       ],
       "UpstreamPathTemplate": "/api/login/getUserByAccessToken",
@@ -90,7 +90,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "loginapi",
-          "Port": 8090
+          "Port": 8091
         }
       ],
       "UpstreamPathTemplate": "/api/login/createUser",
@@ -102,7 +102,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "loginapi",
-          "Port": 8090
+          "Port": 8091
         }
       ],
       "UpstreamPathTemplate": "/api/login/deleteUser/{id}",
@@ -114,7 +114,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "loginapi",
-          "Port": 8090
+          "Port": 8091
         }
       ],
       "UpstreamPathTemplate": "/api/registration/{username}&{name}&{lastName}&{email}&{password}&{address}&{year:int}&{month:int}&{day:int}&{role:int}",
