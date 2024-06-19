@@ -48,7 +48,6 @@ builder.Services.Configure<JWTSettings>(jwtSection);
 var appSettings = jwtSection.Get<JWTSettings>();
 var key = Encoding.ASCII.GetBytes(appSettings.SecretKey);
 
-
 builder.Services.AddAuthentication(x =>
 {
     x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -99,6 +98,44 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
     });
 }
+
+app.Use(async (context, next) =>
+{
+    var request = context.Request;
+    var bodyStr = "";
+    var req = context.Request;
+
+    req.EnableBuffering();
+    using (StreamReader reader = new StreamReader(req.Body, Encoding.UTF8, true, 1024, true))
+    {
+        bodyStr = await reader.ReadToEndAsync();
+    }
+    req.Body.Position = 0;
+
+    // Log request
+    Console.WriteLine($"Request: {bodyStr}");
+
+    await next.Invoke();
+
+    // Log response
+    var response = context.Response;
+    var originalBodyStream = response.Body;
+
+    using (var responseBody = new MemoryStream())
+    {
+        response.Body = responseBody;
+
+        await next();
+
+        response.Body.Seek(0, SeekOrigin.Begin);
+        var responseText = await new StreamReader(response.Body).ReadToEndAsync();
+        response.Body.Seek(0, SeekOrigin.Begin);
+
+        Console.WriteLine($"Response: {responseText}");
+
+        await responseBody.CopyToAsync(originalBodyStream);
+    }
+});
 
 app.UseRouting();
 app.UseCors("MyPolicy");
