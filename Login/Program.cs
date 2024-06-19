@@ -14,9 +14,6 @@ using Login.Handlers;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddHealthChecks()
-    .AddCheck("sqlserver", new SqlServerHealthCheck("Server=db;Database=Netflixlogin;User Id=sa;Password=Ahmed123!;TrustServerCertificate=true;"));
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("MyPolicy",
@@ -48,6 +45,27 @@ builder.Services.Configure<JWTSettings>(jwtSection);
 
 var appSettings = jwtSection.Get<JWTSettings>();
 var key = Encoding.ASCII.GetBytes(appSettings.SecretKey);
+int port = Convert.ToInt32(Environment.GetEnvironmentVariable("ASPNETCORE_HTTPS_PORT") ?? "5000");
+
+
+
+
+if (!builder.Environment.IsDevelopment())
+{
+    builder.WebHost.ConfigureKestrel(serverOptions =>
+    {
+        serverOptions.ListenAnyIP(5000, listenOptions =>
+        {
+            listenOptions.UseHttps("certhttps.pfx", "Password123");
+        });
+        serverOptions.ListenAnyIP(80); // NOTE: optionally listen on port 80, too
+    });
+    builder.Services.AddHttpsRedirection(options =>
+    {
+        options.RedirectStatusCode = (int)HttpStatusCode.TemporaryRedirect;
+        options.HttpsPort = port;
+    });
+}
 
 builder.Services.AddAuthentication(x =>
 {
@@ -68,82 +86,30 @@ builder.Services.AddAuthentication(x =>
     };
 });
 
-builder.Services.Configure<HttpsRedirectionOptions>(options =>
-{
-    options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
-    options.HttpsPort = 443;
-});
+
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-    builder.WebHost.ConfigureKestrel(serverOptions =>
-    {
-        serverOptions.ListenAnyIP(443, listenOptions =>
-        {
-            listenOptions.UseHttps("certhttps.pfx", "Password123");
-        });
-    });
-}
 
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-    });
+    app.UseSwaggerUI();
 }
 
-app.Use(async (context, next) =>
-{
-    var request = context.Request;
-    var bodyStr = "";
-    var req = context.Request;
+app.UseHttpsRedirection();
 
-    req.EnableBuffering();
-    using (StreamReader reader = new StreamReader(req.Body, Encoding.UTF8, true, 1024, true))
-    {
-        bodyStr = await reader.ReadToEndAsync();
-    }
-    req.Body.Position = 0;
-
-    // Log request
-    Console.WriteLine($"Request: {bodyStr}");
-
-    await next.Invoke();
-
-    // Log response
-    var response = context.Response;
-    var originalBodyStream = response.Body;
-
-    using (var responseBody = new MemoryStream())
-    {
-        response.Body = responseBody;
-
-        await next();
-
-        response.Body.Seek(0, SeekOrigin.Begin);
-        var responseText = await new StreamReader(response.Body).ReadToEndAsync();
-        response.Body.Seek(0, SeekOrigin.Begin);
-
-        Console.WriteLine($"Response: {responseText}");
-
-        await responseBody.CopyToAsync(originalBodyStream);
-    }
-});
-app.UseRequestResponseLogging();
-app.UseRouting();
-app.UseCors("MyPolicy");
 app.UseAuthentication();
+
 app.UseAuthorization();
+
 app.MapControllers();
-app.MapHealthChecks("/health");
+
+app.UseCors("MyPolicy");
 app.Run();
 
 var connectionString = "Server=tcp:mocknetflixserver.database.windows.net,1433;Database=NetflixLogin;User Id=I468134@fontysict.nl;Password=sjeemaa1;Encrypt=True;TrustServerCertificate=False;MultipleActiveResultSets=False;Authentication='Active Directory Password';";
@@ -161,34 +127,3 @@ using (SqlConnection connection = new SqlConnection(connectionString))
     }
 }
 
-public class SqlServerHealthCheck : IHealthCheck
-{
-    private readonly string _connectionString;
-
-    public SqlServerHealthCheck(string connectionString)
-    {
-        _connectionString = connectionString;
-    }
-
-    public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                await connection.OpenAsync(cancellationToken);
-
-                if (connection.State == ConnectionState.Open)
-                {
-                    return HealthCheckResult.Healthy("SQL Server is available.");
-                }
-            }
-
-            return HealthCheckResult.Unhealthy("SQL Server is not available.");
-        }
-        catch (Exception ex)
-        {
-            return HealthCheckResult.Unhealthy($"SQL Server check failed: {ex.Message}");
-        }
-    }
-}
