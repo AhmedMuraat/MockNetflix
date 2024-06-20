@@ -18,22 +18,23 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
+      - name: Setup Node.js for NetflixClone
+        if: matrix.project == 'NetflixClone'
         uses: actions/setup-node@v3
         with:
           node-version: '20'
 
-      - name: Setup .NET 8
+      - name: Setup .NET 8 for .NET projects
         if: matrix.project != 'NetflixClone'
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0.x'
 
-      - name: Install dependencies
+      - name: Install dependencies for .NET projects
         if: matrix.project != 'NetflixClone'
         run: dotnet restore ./${{ matrix.project }}/${{ matrix.project }}.csproj
 
-      - name: Install dependencies for React
+      - name: Install dependencies for React project
         if: matrix.project == 'NetflixClone'
         run: npm install
         working-directory: NetflixClone
@@ -44,27 +45,27 @@ jobs:
       - name: Authenticate Snyk
         run: snyk auth ${{ secrets.SNYK_TOKEN }}
 
-      - name: Snyk Monitor
+      - name: Snyk Monitor for .NET projects
         if: matrix.project != 'NetflixClone'
         run: snyk monitor --all-projects
         working-directory: ./${{ matrix.project }}
 
-      - name: Snyk Monitor for React
+      - name: Snyk Monitor for React project
         if: matrix.project == 'NetflixClone'
         run: snyk monitor
         working-directory: NetflixClone
 
-      - name: Snyk Test
+      - name: Snyk Test for .NET projects
         if: matrix.project != 'NetflixClone'
         run: snyk test --all-projects
         working-directory: ./${{ matrix.project }}
 
-      - name: Snyk Test for React
+      - name: Snyk Test for React project
         if: matrix.project == 'NetflixClone'
         run: snyk test
         working-directory: NetflixClone
 
-      - name: SonarCloud Scan
+      - name: SonarCloud Scan for .NET projects
         if: matrix.project != 'NetflixClone'
         uses: SonarSource/sonarcloud-github-action@v2
         with:
@@ -85,14 +86,14 @@ jobs:
         run: npm run build
         working-directory: NetflixClone
 
-      - name: Test (optional)
+      - name: Test .NET project (optional)
         if: matrix.project != 'NetflixClone'
         run: dotnet test --no-build -c Release ./${{ matrix.project }}/${{ matrix.project }}.csproj
         continue-on-error: true
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-  
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
@@ -101,10 +102,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Lowercase project name for Docker tag
-        id: lowercase
-        run: echo "project=$(echo ${{ matrix.project }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Build and Push Docker image
         run: |
