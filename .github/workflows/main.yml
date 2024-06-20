@@ -30,17 +30,17 @@ jobs:
         if: matrix.project != 'NetflixClone'
 
       - name: Install dependencies
-        run: dotnet restore ./${{ matrix.project }}/${{ matrix.project }}.csproj
+        run: dotnet restore ./MockNetflix/${{ matrix.project }}/${{ matrix.project }}.csproj
         if: matrix.project != 'NetflixClone'
 
       - name: Install NPM dependencies
         run: npm install
-        working-directory: ./${{ matrix.project }}
+        working-directory: ./MockNetflix/${{ matrix.project }}
         if: matrix.project == 'NetflixClone'
 
       - name: Build React app
         run: npm run build
-        working-directory: ./${{ matrix.project }}
+        working-directory: ./MockNetflix/${{ matrix.project }}
         if: matrix.project == 'NetflixClone'
 
       - name: Set up Docker Buildx
@@ -62,7 +62,7 @@ jobs:
       - name: Build and Push Docker image
         run: |
           LOWERCASE_PROJECT_NAME="${{ steps.lowercase.outputs.project }}"
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/$LOWERCASE_PROJECT_NAME:latest -f ./${{ matrix.project }}/Dockerfile ./${{ matrix.project }}
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/$LOWERCASE_PROJECT_NAME:latest -f ./MockNetflix/${{ matrix.project }}/Dockerfile ./MockNetflix/${{ matrix.project }}
           docker push ${{ secrets.DOCKER_USERNAME }}/$LOWERCASE_PROJECT_NAME:latest
 
   deploy-to-aks:
@@ -92,23 +92,23 @@ jobs:
 
       - name: Apply Kubernetes manifests - Secrets
         run: |
-          kubectl apply -f Kubernetes/secret.yaml
+          kubectl apply -f MockNetflix/kubernetes/secret.yaml
 
       - name: Apply Kubernetes manifests - Databases
         run: |
-          kubectl apply -f Kubernetes/deployment-db.yaml
-          kubectl apply -f Kubernetes/deployment-db-userinfo.yaml
-          kubectl apply -f Kubernetes/deployment-db-subscribe.yaml
-          kubectl apply -f Kubernetes/persistentvolumeclaim.yaml
+          kubectl apply -f MockNetflix/kubernetes/deployment-db.yaml
+          kubectl apply -f MockNetflix/kubernetes/deployment-db-userinfo.yaml
+          kubectl apply -f MockNetflix/kubernetes/deployment-db-subscribe.yaml
+          kubectl apply -f MockNetflix/kubernetes/persistentvolumeclaim.yaml
 
       - name: Apply Kubernetes manifests - RabbitMQ
         run: |
-          kubectl apply -f Kubernetes/deployment-rabbitmq.yaml
+          kubectl apply -f MockNetflix/kubernetes/deployment-rabbitmq.yaml
 
       - name: Apply Kubernetes manifests - Other Services
         run: |
-          kubectl apply -f Kubernetes/deployment-api-gateway.yaml
-          kubectl apply -f Kubernetes/deployment-loginapi.yaml
-          kubectl apply -f Kubernetes/deployment-subscribe.yaml
-          kubectl apply -f Kubernetes/deployment-userinfo.yaml
-          kubectl apply -f Kubernetes/deployment-netflix-clone.yaml
+          kubectl apply -f MockNetflix/kubernetes/deployment-api-gateway.yaml
+          kubectl apply -f MockNetflix/kubernetes/deployment-loginapi.yaml
+          kubectl apply -f MockNetflix/kubernetes/deployment-subscribe.yaml
+          kubectl apply -f MockNetflix/kubernetes/deployment-userinfo.yaml
+          kubectl apply -f MockNetflix/kubernetes/deployment-netflix-clone.yaml
