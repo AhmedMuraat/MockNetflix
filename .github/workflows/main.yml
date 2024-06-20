@@ -1,114 +1,136 @@
 name: .NET Microservices CI/CD
 
 on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
+push:
+branches:
+- master
+pull_request:
+branches:
+- master
 
 jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        project: [ApiGateWay, Login, Userdata, Subscribe, NetflixClone]
-    steps:
-      - uses: actions/checkout@v3
-        name: Check out the repo
+build-and-push:
+runs-on: ubuntu-latest
+strategy:
+matrix:
+project: [ApiGateWay, Login, Userdata, Subscribe]
+steps:
+- uses: actions/checkout@v3
+name: Check out the repo
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
+yaml
+Code kopiëren
+  - name: Setup Node.js
+    uses: actions/setup-node@v3
+    with:
+      node-version: '20'
 
-      - name: Setup .NET 8
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '8.0.x'
-        if: matrix.project != 'NetflixClone'
+  - name: Setup .NET 8
+    uses: actions/setup-dotnet@v3
+    with:
+      dotnet-version: '8.0.x'
 
-      - name: Install dependencies
-        run: dotnet restore ./MockNetflix/${{ matrix.project }}/${{ matrix.project }}.csproj
-        if: matrix.project != 'NetflixClone'
+  - name: Install dependencies
+    run: dotnet restore ./${{ matrix.project }}/${{ matrix.project }}.csproj
 
-      - name: Install NPM dependencies
-        run: npm install
-        working-directory: ./MockNetflix/${{ matrix.project }}
-        if: matrix.project == 'NetflixClone'
+  - name: Install Snyk CLI
+    run: npm install -g snyk
 
-      - name: Build React app
-        run: npm run build
-        working-directory: ./MockNetflix/${{ matrix.project }}
-        if: matrix.project == 'NetflixClone'
+  - name: Authenticate Snyk
+    run: snyk auth ${{ secrets.SNYK_TOKEN }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+  - name: Snyk Monitor
+    run: snyk monitor --all-projects
+    working-directory: ./${{ matrix.project }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+  - name: Snyk Test
+    run: snyk test --all-projects
+    working-directory: ./${{ matrix.project }}
 
-      - name: Login to DockerHub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+  - name: SonarCloud Scan
+    uses: SonarSource/sonarcloud-github-action@v2
+    with:
+      projectBaseDir: ./${{ matrix.project }}
+      args: >
+        -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+        -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+        -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      - name: Lowercase project name for Docker tag
-        id: lowercase
-        run: echo "::set-output name=project::$(echo ${{ matrix.project }} | tr '[:upper:]' '[:lower:]')"
+  - name: Build
+    run: dotnet build --no-restore -c Release ./${{ matrix.project }}/${{ matrix.project }}.csproj
 
-      - name: Build and Push Docker image
-        run: |
-          LOWERCASE_PROJECT_NAME="${{ steps.lowercase.outputs.project }}"
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/$LOWERCASE_PROJECT_NAME:latest -f ./MockNetflix/${{ matrix.project }}/Dockerfile ./MockNetflix/${{ matrix.project }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/$LOWERCASE_PROJECT_NAME:latest
+  - name: Test (optional)
+    run: dotnet test --no-build -c Release ./${{ matrix.project }}/${{ matrix.project }}.csproj
+    continue-on-error: true
 
-  deploy-to-aks:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        name: Check out the repo
+  - name: Set up Docker Buildx
+    uses: docker/setup-buildx-action@v2
+  
+  - name: Set up QEMU
+    uses: docker/setup-qemu-action@v2
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
+  - name: Login to DockerHub
+    uses: docker/login-action@v2
+    with:
+      username: ${{ secrets.DOCKER_USERNAME }}
+      password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: 'latest'
+  - name: Lowercase project name for Docker tag
+    id: lowercase
+    run: echo "::set-output name=project::$(echo ${{ matrix.project }} | tr '[:upper:]' '[:lower:]')"
 
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+  - name: Build and Push Docker image
+    run: |
+      LOWERCASE_PROJECT_NAME="${{ steps.lowercase.outputs.project }}"
+      docker build -t ${{ secrets.DOCKER_USERNAME }}/$LOWERCASE_PROJECT_NAME:latest -f ./${{ matrix.project }}/Dockerfile ./${{ matrix.project }}
+      docker push ${{ secrets.DOCKER_USERNAME }}/$LOWERCASE_PROJECT_NAME:latest
+deploy-to-aks:
+needs: build-and-push
+runs-on: ubuntu-latest
+steps:
+- uses: actions/checkout@v3
+name: Check out the repo
 
-      - name: Get AKS Credentials
-        run: az aks get-credentials --resource-group Semester6 --name MockNetflix
+yaml
+Code kopiëren
+  - name: Setup Node.js
+    uses: actions/setup-node@v3
+    with:
+      node-version: '20'
 
-      - name: Apply Kubernetes manifests - Secrets
-        run: |
-          kubectl apply -f MockNetflix/kubernetes/secret.yaml
+  - name: Set up kubectl
+    uses: azure/setup-kubectl@v3
+    with:
+      version: 'latest'
 
-      - name: Apply Kubernetes manifests - Databases
-        run: |
-          kubectl apply -f MockNetflix/kubernetes/deployment-db.yaml
-          kubectl apply -f MockNetflix/kubernetes/deployment-db-userinfo.yaml
-          kubectl apply -f MockNetflix/kubernetes/deployment-db-subscribe.yaml
-          kubectl apply -f MockNetflix/kubernetes/persistentvolumeclaim.yaml
+  - name: Azure Login
+    uses: azure/login@v1
+    with:
+      creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Apply Kubernetes manifests - RabbitMQ
-        run: |
-          kubectl apply -f MockNetflix/kubernetes/deployment-rabbitmq.yaml
+  - name: Get AKS Credentials
+    run: az aks get-credentials --resource-group Semester6 --name MockNetflix
 
-      - name: Apply Kubernetes manifests - Other Services
-        run: |
-          kubectl apply -f MockNetflix/kubernetes/deployment-api-gateway.yaml
-          kubectl apply -f MockNetflix/kubernetes/deployment-loginapi.yaml
-          kubectl apply -f MockNetflix/kubernetes/deployment-subscribe.yaml
-          kubectl apply -f MockNetflix/kubernetes/deployment-userinfo.yaml
-          kubectl apply -f MockNetflix/kubernetes/deployment-netflix-clone.yaml
+  - name: Apply Kubernetes manifests - Secrets
+    run: |
+      kubectl apply -f Kubernetes/secret.yaml
+
+  - name: Apply Kubernetes manifests - Databases
+    run: |
+      kubectl apply -f Kubernetes/deployment-db.yaml
+      kubectl apply -f Kubernetes/deployment-db-userinfo.yaml
+      kubectl apply -f Kubernetes/deployment-db-subscribe.yaml
+      kubectl apply -f Kubernetes/persistentvolumeclaim.yaml
+
+  - name: Apply Kubernetes manifests - RabbitMQ
+    run: |
+      kubectl apply -f Kubernetes/deployment-rabbitmq.yaml
+
+  - name: Apply Kubernetes manifests - Other Services
+    run: |
+      kubectl apply -f Kubernetes/deployment-api-gateway.yaml
+      kubectl apply -f Kubernetes/deployment-loginapi.yaml
+      kubectl apply -f Kubernetes/deployment-subscribe.yaml
+      kubectl apply -f Kubernetes/deployment-userinfo.yaml
