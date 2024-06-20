@@ -2,15 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using System.Text.Json.Serialization;
-using System.Net;
 using Login.Models;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using System.Data;
-using RabbitMQ.Client;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Login.Handlers;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,11 +40,6 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
 
 app.UseHttpsRedirection();
 
