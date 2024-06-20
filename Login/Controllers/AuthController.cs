@@ -31,30 +31,34 @@ namespace Login.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] User user, string name, string lastName, string address, string dateOfBirth, int role)
+        public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
         {
-            if (await _context.Users.AnyAsync(u => u.Email == user.Email))
+            if (await _context.Users.AnyAsync(u => u.Email == registerRequest.Email))
                 return BadRequest("User already exists.");
 
-            user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
-            user.RoleId = role;
+            var user = new User
+            {
+                Email = registerRequest.Email,
+                Username = registerRequest.Username,
+                Password = BCrypt.Net.BCrypt.HashPassword(registerRequest.Password)
+            };
+
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
             // Publish user creation event to RabbitMQ
-            var parsedDateOfBirth = DateOnly.Parse(dateOfBirth);
+            var parsedDateOfBirth = DateOnly.Parse(registerRequest.DateOfBirth);
 
             var userCreatedEvent = new UserCreatedEvent
             {
                 UserId = user.Id,
                 Username = user.Username,
-                Name = name,
-                LastName = lastName,
-                Email = user.Email,
-                Address = address,
+                Name = registerRequest.Name,
+                LastName = registerRequest.LastName,
+                Email = registerRequest.Email,
+                Address = registerRequest.Address,
                 DateOfBirth = parsedDateOfBirth,
-                AccountCreated = DateTime.UtcNow,
-                RoleId = role
+                AccountCreated = DateTime.UtcNow
             };
 
             var messageBody = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(userCreatedEvent));
@@ -157,5 +161,16 @@ namespace Login.Controllers
 
             return principal;
         }
+    }
+
+    public class RegisterRequest
+    {
+        public string Email { get; set; }
+        public string Username { get; set; }
+        public string Password { get; set; }
+        public string Name { get; set; }
+        public string LastName { get; set; }
+        public string Address { get; set; }
+        public string DateOfBirth { get; set; }
     }
 }
