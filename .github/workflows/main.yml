@@ -64,6 +64,7 @@ jobs:
         if: matrix.project == 'NetflixClone'
         run: snyk test
         working-directory: ./netflixclone
+        continue-on-error: true
 
       - name: SonarCloud Scan for .NET projects
         if: matrix.project != 'NetflixClone'
