@@ -14,85 +14,36 @@ using Login.Handlers;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("MyPolicy",
-    builder =>
-    {
-        builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-    });
-});
 
+// Add services to the container.
 builder.Services.AddControllers();
-builder.Services.AddSingleton(sp =>
-{
-    var factory = new ConnectionFactory
-    {
-        HostName = builder.Configuration["RabbitMQ:HostName"],
-        UserName = builder.Configuration["RabbitMQ:UserName"],
-        Password = builder.Configuration["RabbitMQ:Password"]
-    };
-    return factory.CreateConnection().CreateModel();
-});
 
+// Add DbContext
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<NetflixLoginContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(connectionString));
 
-builder.Services.AddControllers().AddJsonOptions(x =>
-                x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
-var jwtSection = builder.Configuration.GetSection("JWTSettings");
-builder.Services.Configure<JWTSettings>(jwtSection);
-
-var appSettings = jwtSection.Get<JWTSettings>();
-var key = Encoding.ASCII.GetBytes(appSettings.SecretKey);
-int port = Convert.ToInt32(Environment.GetEnvironmentVariable("ASPNETCORE_HTTPS_PORT") ?? "5000");
-
-
-
-
-if (!builder.Environment.IsDevelopment())
+// Configure JWT Authentication
+var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
+builder.Services.AddAuthentication(options =>
 {
-    builder.WebHost.ConfigureKestrel(serverOptions =>
-    {
-        serverOptions.ListenAnyIP(5000, listenOptions =>
-        {
-            listenOptions.UseHttps("certhttps.pfx", "Password123");
-        });
-        serverOptions.ListenAnyIP(80); // NOTE: optionally listen on port 80, too
-    });
-    builder.Services.AddHttpsRedirection(options =>
-    {
-        options.RedirectStatusCode = (int)HttpStatusCode.TemporaryRedirect;
-        options.HttpsPort = port;
-    });
-}
-
-builder.Services.AddAuthentication(x =>
-{
-    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-.AddJwtBearer(x =>
+.AddJwtBearer(options =>
 {
-    x.RequireHttpsMetadata = true;
-    x.SaveToken = true;
-    x.TokenValidationParameters = new TokenValidationParameters
+    options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
         ValidateIssuer = false,
-        ValidateAudience = false,
-        ClockSkew = TimeSpan.Zero
+        ValidateAudience = false
     };
 });
 
-
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -104,15 +55,15 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
-
 app.UseAuthorization();
 
 app.MapControllers();
 
-app.UseCors("MyPolicy");
 app.Run();
 
-var connectionString = "Server=tcp:mocknetflixserver.database.windows.net,1433;Database=NetflixLogin;User Id=I468134@fontysict.nl;Password=sjeemaa1;Encrypt=True;TrustServerCertificate=False;MultipleActiveResultSets=False;Authentication='Active Directory Password';";
+
+
+
 
 using (SqlConnection connection = new SqlConnection(connectionString))
 {
