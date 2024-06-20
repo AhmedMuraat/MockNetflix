@@ -35,7 +35,7 @@ jobs:
 
       - name: Install dependencies for React
         if: matrix.project == 'NetflixClone'
-        run: npm install --prefix ./${{ matrix.project }}
+        run: npm install --prefix ./NetflixClone
 
       - name: Install Snyk CLI
         run: npm install -g snyk
@@ -51,7 +51,7 @@ jobs:
       - name: Snyk Monitor for React
         if: matrix.project == 'NetflixClone'
         run: snyk monitor
-        working-directory: ./${{ matrix.project }}
+        working-directory: ./NetflixClone
 
       - name: Snyk Test
         if: matrix.project != 'NetflixClone'
@@ -61,7 +61,7 @@ jobs:
       - name: Snyk Test for React
         if: matrix.project == 'NetflixClone'
         run: snyk test
-        working-directory: ./${{ matrix.project }}
+        working-directory: ./NetflixClone
 
       - name: SonarCloud Scan
         if: matrix.project != 'NetflixClone'
@@ -81,7 +81,7 @@ jobs:
 
       - name: Build React project
         if: matrix.project == 'NetflixClone'
-        run: npm run build --prefix ./${{ matrix.project }}
+        run: npm run build --prefix ./NetflixClone
 
       - name: Test (optional)
         if: matrix.project != 'NetflixClone'
@@ -107,7 +107,7 @@ jobs:
       - name: Build and Push Docker image
         run: |
           if [ "${{ matrix.project }}" == "NetflixClone" ]; then
-            docker build -t ${{ secrets.DOCKER_USERNAME }}/netflixclone:latest -f ./${{ matrix.project }}/Dockerfile ./${{ matrix.project }}
+            docker build -t ${{ secrets.DOCKER_USERNAME }}/netflixclone:latest -f ./NetflixClone/Dockerfile ./NetflixClone
           else
             docker build -t ${{ secrets.DOCKER_USERNAME }}/$(echo ${{ matrix.project }} | tr '[:upper:]' '[:lower:]'):latest -f ./${{ matrix.project }}/Dockerfile ./${{ matrix.project }}
           fi
