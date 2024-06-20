@@ -113,19 +113,28 @@ namespace Login.Controllers
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
+
+            var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, user.Email)
+                };
+
+            if (user.Role != null && !string.IsNullOrEmpty(user.Role.RoleDesc))
+            {
+                claims.Add(new Claim(ClaimTypes.Role, user.Role.RoleDesc));
+            }
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                    new Claim(ClaimTypes.Name, user.Email),
-                    new Claim(ClaimTypes.Role, user.Role?.RoleDesc)
-                }),
+                Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddMinutes(30),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
+
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+
 
         private string GenerateRefreshToken(User user)
         {
