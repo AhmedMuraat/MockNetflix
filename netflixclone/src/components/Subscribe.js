@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const Subscribe = ({ token }) => {
-    const [userId, setUserId] = useState('');
+const Subscribe = ({ token, userId }) => {
     const [planId, setPlanId] = useState('');
 
     const handleSubmit = async (e) => {
@@ -22,7 +21,6 @@ const Subscribe = ({ token }) => {
     return (
         <div className="subscribe">
             <form onSubmit={handleSubmit}>
-                <input name="userId" placeholder="User ID" value={userId} onChange={(e) => setUserId(e.target.value)} />
                 <input name="planId" placeholder="Plan ID" value={planId} onChange={(e) => setPlanId(e.target.value)} />
                 <button type="submit">Subscribe</button>
             </form>

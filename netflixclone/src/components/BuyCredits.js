@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const BuyCredits = ({ token }) => {
-    const [userId, setUserId] = useState('');
+const BuyCredits = ({ token, userId }) => {
     const [amount, setAmount] = useState('');
 
     const handleSubmit = async (e) => {
@@ -22,7 +21,6 @@ const BuyCredits = ({ token }) => {
     return (
         <div className="buy-credits">
             <form onSubmit={handleSubmit}>
-                <input name="userId" placeholder="User ID" value={userId} onChange={(e) => setUserId(e.target.value)} />
                 <input name="amount" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} />
                 <button type="submit">Buy Credits</button>
             </form>

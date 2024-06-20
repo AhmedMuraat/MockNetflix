@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 
-const Login = ({ setToken, setUsername }) => {
+const Login = ({ setToken, setUsername, setUserId }) => {
     const [formData, setFormData] = useState({ email: '', password: '' });
     const navigate = useNavigate();
 
@@ -23,6 +23,7 @@ const Login = ({ setToken, setUsername }) => {
             });
             setToken(response.data.accessToken);
             setUsername(response.data.username);
+            setUserId(response.data.userId); // assuming response contains userId
             navigate('/main');
         } catch (err) {
             console.error(err);
