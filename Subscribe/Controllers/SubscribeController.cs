@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using RabbitMQ.Client;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Subscribe.Controllers
 {
