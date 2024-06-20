@@ -14,7 +14,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer("Bearer", options =>
 {
-    options.Authority = "http://login-api:8080"; // Update this to your login API's URL
+    options.Authority = "http://loginapi:8090"; // Ensure this URL is correct
     options.RequireHttpsMetadata = false; // Set to true in production environments
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -29,13 +29,13 @@ builder.Configuration.AddJsonFile("ocelot.json", optional: false, reloadOnChange
 
 builder.Services.AddOcelot(builder.Configuration);
 
-
 // Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// Configure logging for Ocelot
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
 var app = builder.Build();
 
@@ -50,7 +50,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.UseOcelot().GetAwaiter().GetResult();
+
+// Ensure single call to UseOcelot
 app.UseOcelot().Wait();
 
 app.Run();
