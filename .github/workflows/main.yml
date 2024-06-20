@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [ApiGateWay, Login, Userdata, Subscribe, NetflixClone]
+        project: [ApiGateWay, Login, Userdata, Subscribe]
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -24,19 +24,12 @@ jobs:
           node-version: '20'
 
       - name: Setup .NET 8
-        if: matrix.project != 'NetflixClone'
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0.x'
 
       - name: Install dependencies
-        if: matrix.project != 'NetflixClone'
         run: dotnet restore ./${{ matrix.project }}/${{ matrix.project }}.csproj
-
-      - name: Install dependencies for React
-        if: matrix.project == 'NetflixClone'
-        run: npm install
-        working-directory: ./NetflixClone
 
       - name: Install Snyk CLI
         run: npm install -g snyk
@@ -45,27 +38,14 @@ jobs:
         run: snyk auth ${{ secrets.SNYK_TOKEN }}
 
       - name: Snyk Monitor
-        if: matrix.project != 'NetflixClone'
         run: snyk monitor --all-projects
         working-directory: ./${{ matrix.project }}
 
-      - name: Snyk Monitor for React
-        if: matrix.project == 'NetflixClone'
-        run: snyk monitor
-        working-directory: ./NetflixClone
-
       - name: Snyk Test
-        if: matrix.project != 'NetflixClone'
         run: snyk test --all-projects
         working-directory: ./${{ matrix.project }}
 
-      - name: Snyk Test for React
-        if: matrix.project == 'NetflixClone'
-        run: snyk test
-        working-directory: ./NetflixClone
-
       - name: SonarCloud Scan
-        if: matrix.project != 'NetflixClone'
         uses: SonarSource/sonarcloud-github-action@v2
         with:
           projectBaseDir: ./${{ matrix.project }}
@@ -76,23 +56,16 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      - name: Build .NET project
-        if: matrix.project != 'NetflixClone'
+      - name: Build
         run: dotnet build --no-restore -c Release ./${{ matrix.project }}/${{ matrix.project }}.csproj
 
-      - name: Build React project
-        if: matrix.project == 'NetflixClone'
-        run: npm run build
-        working-directory: ./NetflixClone
-
       - name: Test (optional)
-        if: matrix.project != 'NetflixClone'
         run: dotnet test --no-build -c Release ./${{ matrix.project }}/${{ matrix.project }}.csproj
         continue-on-error: true
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-
+  
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
@@ -108,11 +81,7 @@ jobs:
 
       - name: Build and Push Docker image
         run: |
-          if [ "${{ matrix.project }}" == "NetflixClone" ]; then
-            docker build -t ${{ secrets.DOCKER_USERNAME }}/netflixclone:latest -f ./NetflixClone/Dockerfile ./NetflixClone --progress=plain
-          else
-            docker build -t ${{ secrets.DOCKER_USERNAME }}/$(echo ${{ matrix.project }} | tr '[:upper:]' '[:lower:]'):latest -f ./${{ matrix.project }}/Dockerfile ./${{ matrix.project }} --progress=plain
-          fi
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/$(echo ${{ matrix.project }} | tr '[:upper:]' '[:lower:]'):latest -f ./${{ matrix.project }}/Dockerfile ./${{ matrix.project }}
           docker push ${{ secrets.DOCKER_USERNAME }}/$(echo ${{ matrix.project }} | tr '[:upper:]' '[:lower:]'):latest
 
   deploy-to-aks:
@@ -121,7 +90,7 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
-
+      
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -159,4 +128,3 @@ jobs:
           kubectl apply -f Kubernetes/deployment-loginapi.yaml
           kubectl apply -f Kubernetes/deployment-subscribe.yaml
           kubectl apply -f Kubernetes/deployment-userinfo.yaml
-          kubectl apply -f Kubernetes/deployment-netflixclone.yaml
