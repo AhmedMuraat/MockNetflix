@@ -1,32 +1,40 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: netflix-clone
+  name: netflixclone
+  labels:
+    app: netflixclone
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
-      app: netflix-clone
+      app: netflixclone
   template:
     metadata:
       labels:
-        app: netflix-clone
+        app: netflixclone
     spec:
       containers:
-        - name: netflix-clone
-          image: ahmedmuraat/netflix-clone:latest
+        - name: netflixclone
+          image: ahmedmuraat/netflixclone:latest
           ports:
             - containerPort: 80
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: netflix-clone
+  name: netflixclone-service
 spec:
-  selector:
-    app: netflix-clone
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
   type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: netflixclone
