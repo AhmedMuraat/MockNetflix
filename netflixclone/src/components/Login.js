@@ -16,7 +16,11 @@ const Login = ({ setToken, setUsername }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://48.217.203.73:5000/api/auth/login', formData);
+            const response = await axios.post('http://48.217.203.73:5000/api/auth/login', formData, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
             setToken(response.data.accessToken);
             setUsername(response.data.username);
             navigate('/main');
