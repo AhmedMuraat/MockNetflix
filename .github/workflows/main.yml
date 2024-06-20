@@ -35,7 +35,8 @@ jobs:
 
       - name: Install dependencies for React
         if: matrix.project == 'NetflixClone'
-        run: npm install --prefix ./NetflixClone
+        run: npm install
+        working-directory: ./NetflixClone
 
       - name: Install Snyk CLI
         run: npm install -g snyk
@@ -81,7 +82,8 @@ jobs:
 
       - name: Build React project
         if: matrix.project == 'NetflixClone'
-        run: npm run build --prefix ./NetflixClone
+        run: npm run build
+        working-directory: ./NetflixClone
 
       - name: Test (optional)
         if: matrix.project != 'NetflixClone'
@@ -90,7 +92,7 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-  
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
@@ -119,7 +121,7 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
