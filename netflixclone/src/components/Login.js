@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Login = ({ setToken, setUsername }) => {
     const [formData, setFormData] = useState({ email: '', password: '' });
@@ -32,6 +32,7 @@ const Login = ({ setToken, setUsername }) => {
                 <input name="password" placeholder="Password" type="password" onChange={handleChange} />
                 <button type="submit">Login</button>
             </form>
+            <Link to="/register">Don't have an account? Register here</Link>
         </div>
     );
 };

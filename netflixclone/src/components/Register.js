@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -43,6 +43,7 @@ const Register = () => {
                 <input name="dateOfBirth" placeholder="Date of Birth" onChange={handleChange} />
                 <button type="submit">Register</button>
             </form>
+            <Link to="/login">Already have an account? Login here</Link>
         </div>
     );
 };
