@@ -37,7 +37,7 @@ jobs:
       - name: Install dependencies for React project
         if: matrix.project == 'NetflixClone'
         run: npm install
-        working-directory: NetflixClone
+        working-directory: ./NetflixClone
 
       - name: Install Snyk CLI
         run: npm install -g snyk
@@ -53,7 +53,7 @@ jobs:
       - name: Snyk Monitor for React project
         if: matrix.project == 'NetflixClone'
         run: snyk monitor
-        working-directory: NetflixClone
+        working-directory: ./NetflixClone
 
       - name: Snyk Test for .NET projects
         if: matrix.project != 'NetflixClone'
@@ -63,7 +63,7 @@ jobs:
       - name: Snyk Test for React project
         if: matrix.project == 'NetflixClone'
         run: snyk test
-        working-directory: NetflixClone
+        working-directory: ./NetflixClone
 
       - name: SonarCloud Scan for .NET projects
         if: matrix.project != 'NetflixClone'
@@ -84,7 +84,7 @@ jobs:
       - name: Build React project
         if: matrix.project == 'NetflixClone'
         run: npm run build
-        working-directory: NetflixClone
+        working-directory: ./NetflixClone
 
       - name: Test .NET project (optional)
         if: matrix.project != 'NetflixClone'
