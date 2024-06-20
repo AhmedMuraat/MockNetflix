@@ -17,9 +17,6 @@ project: [ApiGateWay, Login, Userdata, Subscribe]
 steps:
 - uses: actions/checkout@v3
 name: Check out the repo
-
-yaml
-Code kopiëren
   - name: Setup Node.js
     uses: actions/setup-node@v3
     with:
@@ -92,10 +89,7 @@ runs-on: ubuntu-latest
 steps:
 - uses: actions/checkout@v3
 name: Check out the repo
-
-yaml
-Code kopiëren
-  - name: Setup Node.js
+- name: Setup Node.js
     uses: actions/setup-node@v3
     with:
       node-version: '20'
