@@ -2,16 +2,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const Register = () => {
-    const [formData, setFormData] = useState({
-        email: '',
-        username: '',
-        password: '',
-        name: '',
-        lastName: '',
-        address: '',
-        dateOfBirth: '',
-    });
+const Login = ({ setToken, setUsername }) => {
+    const [formData, setFormData] = useState({ email: '', password: '' });
     const navigate = useNavigate();
 
     const handleChange = (e) => {
@@ -24,27 +16,24 @@ const Register = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://48.217.203.73:5000/api/auth/register', formData);
-            navigate('/login');
+            const response = await axios.post('http://48.217.203.73:5000/api/auth/login', formData);
+            setToken(response.data.accessToken);
+            setUsername(response.data.username);
+            navigate('/main');
         } catch (err) {
             console.error(err);
         }
     };
 
     return (
-        <div className="register">
+        <div className="login">
             <form onSubmit={handleSubmit}>
                 <input name="email" placeholder="Email" onChange={handleChange} />
-                <input name="username" placeholder="Username" onChange={handleChange} />
                 <input name="password" placeholder="Password" type="password" onChange={handleChange} />
-                <input name="name" placeholder="Name" onChange={handleChange} />
-                <input name="lastName" placeholder="Last Name" onChange={handleChange} />
-                <input name="address" placeholder="Address" onChange={handleChange} />
-                <input name="dateOfBirth" placeholder="Date of Birth" onChange={handleChange} />
-                <button type="submit">Register</button>
+                <button type="submit">Login</button>
             </form>
         </div>
     );
 };
 
-export default Register;
+export default Login;
