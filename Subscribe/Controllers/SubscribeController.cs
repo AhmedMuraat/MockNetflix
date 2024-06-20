@@ -9,6 +9,7 @@ namespace Subscribe.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class SubscribeController : ControllerBase
     {
         private readonly SubContext _context;
