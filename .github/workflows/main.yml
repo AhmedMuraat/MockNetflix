@@ -109,9 +109,9 @@ jobs:
       - name: Build and Push Docker image
         run: |
           if [ "${{ matrix.project }}" == "NetflixClone" ]; then
-            docker build -t ${{ secrets.DOCKER_USERNAME }}/netflixclone:latest -f ./NetflixClone/Dockerfile ./NetflixClone
+            docker build -t ${{ secrets.DOCKER_USERNAME }}/netflixclone:latest -f ./NetflixClone/Dockerfile ./NetflixClone --progress=plain
           else
-            docker build -t ${{ secrets.DOCKER_USERNAME }}/$(echo ${{ matrix.project }} | tr '[:upper:]' '[:lower:]'):latest -f ./${{ matrix.project }}/Dockerfile ./${{ matrix.project }}
+            docker build -t ${{ secrets.DOCKER_USERNAME }}/$(echo ${{ matrix.project }} | tr '[:upper:]' '[:lower:]'):latest -f ./${{ matrix.project }}/Dockerfile ./${{ matrix.project }} --progress=plain
           fi
           docker push ${{ secrets.DOCKER_USERNAME }}/$(echo ${{ matrix.project }} | tr '[:upper:]' '[:lower:]'):latest
 
