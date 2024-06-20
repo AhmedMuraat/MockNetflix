@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace Login.Models;
@@ -27,6 +28,7 @@ public partial class User
     public int? RoleId { get; set; }
 
     [InverseProperty("User")]
+    [JsonIgnore]
     public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 
     [ForeignKey("RoleId")]

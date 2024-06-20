@@ -5,11 +5,18 @@ using System.Text;
 using Login.Models;
 using RabbitMQ.Client;
 using Microsoft.Data.SqlClient;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+        options.JsonSerializerOptions.MaxDepth = 64; // You can adjust this as needed
+    });
 
 // Add DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -57,7 +64,6 @@ builder.Services.AddSingleton<IModel>(sp =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
-
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
