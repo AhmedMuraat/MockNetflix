@@ -3,12 +3,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Login.Models;
-using Microsoft.Data.SqlClient;
 using RabbitMQ.Client;
-
+using Microsoft.Data.SqlClient;
 
 var builder = WebApplication.CreateBuilder(args);
-
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -38,15 +36,6 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-var app = builder.Build();
-
-// Configure the HTTP request pipeline
-
-app.UseHttpsRedirection();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
 // Register RabbitMQ connection and channel
 builder.Services.AddSingleton(sp =>
 {
@@ -65,14 +54,18 @@ builder.Services.AddSingleton<IModel>(sp =>
     return connection.CreateModel();
 });
 
+var app = builder.Build();
+
+// Configure the HTTP request pipeline
+
+app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
-
-
-
-
 
 using (SqlConnection connection = new SqlConnection(connectionString))
 {
@@ -86,4 +79,3 @@ using (SqlConnection connection = new SqlConnection(connectionString))
         Console.WriteLine($"Connection failed: {ex.Message}");
     }
 }
-
