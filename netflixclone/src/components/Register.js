@@ -12,26 +12,32 @@ const Register = () => {
         address: '',
         dateOfBirth: ''
     });
+    const [error, setError] = useState('');
     const navigate = useNavigate();
 
     const handleChange = (e) => {
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value
+            [e.target.name]: e.target.value,
         });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://48.217.203.73:5000/api/auth/register', formData, {
+            const response = await axios.post('http://48.217.203.73:5000/api/auth/register', formData, {
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
-            navigate('/login');
+            navigate('/login'); // Redirect to login page after successful registration
         } catch (err) {
-            console.error(err.response.data);
+            if (err.response && err.response.data && err.response.data.message) {
+                setError(err.response.data.message);
+            } else {
+                setError('Registration failed. Please try again.');
+            }
+            console.error(err);
         }
     };
 
@@ -44,14 +50,10 @@ const Register = () => {
                 <input name="name" placeholder="Name" onChange={handleChange} />
                 <input name="lastName" placeholder="Last Name" onChange={handleChange} />
                 <input name="address" placeholder="Address" onChange={handleChange} />
-                <input
-                    name="dateOfBirth"
-                    type="date"
-                    placeholder="Date of Birth"
-                    onChange={handleChange}
-                />
+                <input name="dateOfBirth" placeholder="Date of Birth" onChange={handleChange} />
                 <button type="submit">Register</button>
             </form>
+            {error && <p style={{ color: 'red' }}>{error}</p>}
             <Link to="/login">Already have an account? Login here</Link>
         </div>
     );

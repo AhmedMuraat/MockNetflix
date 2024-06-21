@@ -36,7 +36,10 @@ namespace Login.Controllers
         public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
         {
             if (await _context.Users.AnyAsync(u => u.Email == registerRequest.Email))
-                return BadRequest("User already exists.");
+                return BadRequest(new { message = "Email already exists." });
+
+            if (await _context.Users.AnyAsync(u => u.Username == registerRequest.Username))
+                return BadRequest(new { message = "Username already exists." });
 
             var user = new User
             {
@@ -77,14 +80,14 @@ namespace Login.Controllers
             return Ok(user);
         }
 
-    [HttpPost("login")]
+        [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] User login)
         {
             var user = await _context.Users.Include(u => u.Role)
                 .SingleOrDefaultAsync(u => u.Email == login.Email);
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(login.Password, user.Password))
-                return Unauthorized();
+                return Unauthorized(new { message = "Email or password is incorrect." });
 
             var userWithToken = new UserWithToken(user)
             {
@@ -141,7 +144,6 @@ namespace Login.Controllers
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-
 
         private string GenerateRefreshToken(User user)
         {
@@ -204,4 +206,3 @@ namespace Login.Controllers
         public string DateOfBirth { get; set; }
     }
 }
-    
