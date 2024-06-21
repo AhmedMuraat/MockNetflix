@@ -31,7 +31,8 @@ namespace Userdata.Controllers
             [HttpGet("{id}")]
             public async Task<IActionResult> GetUserInfo(int id)
             {
-                var userInfo = await _context.UserData.FindAsync(id);
+                // Find the user info by UserId, not UserInfoId
+                var userInfo = await _context.UserData.FirstOrDefaultAsync(u => u.UserId == id);
 
                 if (userInfo == null)
                 {
@@ -43,7 +44,7 @@ namespace Userdata.Controllers
 
         // POST: api/UserInfo
 
-            [HttpPost]
+        [HttpPost]
             public async Task<IActionResult> PostUserInfo([FromBody] UserDatum userInfo)
             {
                 if (!ModelState.IsValid)
