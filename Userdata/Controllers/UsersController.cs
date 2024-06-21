@@ -126,20 +126,45 @@ namespace Userdata.Controllers
             }
         }
 
-        // DELETE: api/UserInfo/5
+        // DELETE: api/Users/5
         [HttpDelete("{id}")]
-            public async Task<IActionResult> DeleteUserInfo(int id)
+        public async Task<IActionResult> DeleteUserInfo(int id)
+        {
+            var userInfo = await _context.UserData.FirstOrDefaultAsync(u => u.UserId == id);
+            if (userInfo == null)
             {
-                var userInfo = await _context.UserData.FindAsync(id);
-                if (userInfo == null)
-                {
-                    return NotFound();
-                }
+                return NotFound();
+            }
 
-                _context.UserData.Remove(userInfo);
+            _context.UserData.Remove(userInfo);
+
+            try
+            {
                 await _context.SaveChangesAsync();
+
+                // Send RabbitMQ messages to delete the user from the Login and Subscription databases
+                var message = new { UserId = id };
+                var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
+
+                // Send message to Login API
+                _channel.BasicPublish(exchange: "",
+                                      routingKey: "user-delete-login-queue",
+                                      basicProperties: null,
+                                      body: body);
+
+                // Send message to Subscription API
+                _channel.BasicPublish(exchange: "",
+                                      routingKey: "user-delete-subscription-queue",
+                                      basicProperties: null,
+                                      body: body);
 
                 return NoContent();
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting user with ID {UserId}", id);
+                throw;
+            }
+        }
     }
 }

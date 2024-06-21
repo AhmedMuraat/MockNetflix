@@ -7,6 +7,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using RabbitMQ.Client;
 using Subscribe.Models;
+using Subscribe.Rabbit;
 using System.Data;
 using System.Text;
 
@@ -40,7 +41,14 @@ builder.Services.AddSingleton(sp =>
     };
     return factory.CreateConnection().CreateModel();
 });
+    builder.Services.AddSingleton<IModel>(sp =>
+    {
+        var connection = sp.GetRequiredService<IConnection>();
+        return connection.CreateModel();
+    });
 
+    // Register RabbitMQ consumer service
+    builder.Services.AddHostedService<RabbitMqConsumerService>();
 // Configure DbContext
 builder.Services.AddDbContext<SubContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

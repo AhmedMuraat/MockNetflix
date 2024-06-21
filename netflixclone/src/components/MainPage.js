@@ -8,6 +8,7 @@ const MainPage = ({ username }) => (
         <div className="main-content">
             <Link to="/subscribe">Subscribe</Link>
             <Link to="/buycredits">Buy Credits</Link>
+            <Link to="/userinfo">update userinfo</Link>
         </div>
     </div>
 );

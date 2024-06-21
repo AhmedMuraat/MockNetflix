@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace Login.Rabbit
 {
-    public class RabbitMqConsumerService: BackgroundService
+    public class RabbitMqConsumerService : BackgroundService
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IModel _channel;
@@ -22,14 +22,22 @@ namespace Login.Rabbit
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            // Declare queues
             _channel.QueueDeclare(queue: "user-update-queue",
-                                 durable: false,
-                                 exclusive: false,
-                                 autoDelete: false,
-                                 arguments: null);
+                                  durable: false,
+                                  exclusive: false,
+                                  autoDelete: false,
+                                  arguments: null);
 
-            var consumer = new EventingBasicConsumer(_channel);
-            consumer.Received += async (model, ea) =>
+            _channel.QueueDeclare(queue: "user-delete-login-queue",
+                                  durable: false,
+                                  exclusive: false,
+                                  autoDelete: false,
+                                  arguments: null);
+
+            // Consumer for user updates
+            var updateConsumer = new EventingBasicConsumer(_channel);
+            updateConsumer.Received += async (model, ea) =>
             {
                 if (stoppingToken.IsCancellationRequested) return;
 
@@ -61,9 +69,47 @@ namespace Login.Rabbit
                 }
             };
 
+            // Consumer for user deletions
+            var deleteConsumer = new EventingBasicConsumer(_channel);
+            deleteConsumer.Received += async (model, ea) =>
+            {
+                if (stoppingToken.IsCancellationRequested) return;
+
+                var body = ea.Body.ToArray();
+                var message = Encoding.UTF8.GetString(body);
+                _logger.LogInformation("Received message in user-delete-login-queue: {Message}", message);
+
+                try
+                {
+                    var deleteMessage = JsonSerializer.Deserialize<UserDeleteMessage>(message);
+                    if (deleteMessage != null)
+                    {
+                        using (var scope = _serviceProvider.CreateScope())
+                        {
+                            var context = scope.ServiceProvider.GetRequiredService<NetflixLoginContext>();
+                            var user = await context.Users.FirstOrDefaultAsync(u => u.Id == deleteMessage.UserId);
+                            if (user != null)
+                            {
+                                context.Users.Remove(user);
+                                await context.SaveChangesAsync(stoppingToken);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error processing message in user-delete-login-queue: {Message}", message);
+                }
+            };
+
+            // Register consumers
             _channel.BasicConsume(queue: "user-update-queue",
-                                 autoAck: true,
-                                 consumer: consumer);
+                                  autoAck: true,
+                                  consumer: updateConsumer);
+
+            _channel.BasicConsume(queue: "user-delete-login-queue",
+                                  autoAck: true,
+                                  consumer: deleteConsumer);
 
             return Task.CompletedTask;
         }
@@ -74,5 +120,11 @@ namespace Login.Rabbit
             _channel?.Dispose();
             return base.StopAsync(stoppingToken);
         }
+    }
+
+
+    public class UserDeleteMessage
+    {
+        public int UserId { get; set; }
     }
 }
