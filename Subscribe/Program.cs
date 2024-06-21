@@ -31,7 +31,7 @@ builder.Services.AddControllers();
 builder.Services.AddHttpClient();
 
 // Configure RabbitMQ
-builder.Services.AddSingleton(sp =>
+builder.Services.AddSingleton<IConnection>(sp =>
 {
     var factory = new ConnectionFactory
     {
@@ -39,22 +39,21 @@ builder.Services.AddSingleton(sp =>
         UserName = builder.Configuration["RabbitMQ:UserName"],
         Password = builder.Configuration["RabbitMQ:Password"]
     };
-    return factory.CreateConnection().CreateModel();
+    return factory.CreateConnection();
 });
-    builder.Services.AddSingleton<IModel>(sp =>
-    {
-        var connection = sp.GetRequiredService<IConnection>();
-        return connection.CreateModel();
-    });
 
-    // Register RabbitMQ consumer service
-    builder.Services.AddHostedService<RabbitMqConsumerService>();
+builder.Services.AddSingleton<IModel>(sp =>
+{
+    var connection = sp.GetRequiredService<IConnection>();
+    return connection.CreateModel();
+});
+
+// Register RabbitMQ consumer service
+builder.Services.AddHostedService<RabbitMqConsumerService>();
+
 // Configure DbContext
 builder.Services.AddDbContext<SubContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// Add hosted service for UserCreatedConsumer
-builder.Services.AddHostedService<RabbitMqConsumerService>();
 
 // Configure JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -75,10 +74,10 @@ builder.Services.Configure<HttpsRedirectionOptions>(options =>
     options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
     options.HttpsPort = 443;
 });
+
 // Add Swagger for API documentation
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
 
 var app = builder.Build();
 
