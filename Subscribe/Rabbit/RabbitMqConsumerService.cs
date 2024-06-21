@@ -1,90 +1,110 @@
-﻿using Microsoft.Extensions.Logging;
-using RabbitMQ.Client;
+﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using Subscribe.Models;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using Userdata.Models;
 
-public class UserCreatedConsumer : BackgroundService
+namespace Subscribe.Rabbit
 {
-    private readonly IServiceProvider _serviceProvider;
-    private readonly RabbitMQ.Client.IModel _channel;
-    private readonly ILogger<UserCreatedConsumer> _logger;
-
-    public UserCreatedConsumer(IServiceProvider serviceProvider, RabbitMQ.Client.IModel channel, ILogger<UserCreatedConsumer> logger)
+    public class RabbitMqConsumerService : BackgroundService
     {
-        _serviceProvider = serviceProvider;
-        _channel = channel;
-        _logger = logger;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly IModel _channel;
+        private readonly ILogger<RabbitMqConsumerService> _logger;
 
-        _channel.QueueDeclare(queue: "user.created", durable: false, exclusive: false, autoDelete: false, arguments: null);
-        _logger.LogInformation("Queue declared: user.created");
-    }
-
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        var consumer = new EventingBasicConsumer(_channel);
-        consumer.Received += async (model, ea) =>
+        public RabbitMqConsumerService(IServiceProvider serviceProvider, IModel channel, ILogger<RabbitMqConsumerService> logger)
         {
-            var body = ea.Body.ToArray();
-            var message = Encoding.UTF8.GetString(body);
-            _logger.LogInformation("Received message: {Message}", message);
+            _serviceProvider = serviceProvider;
+            _channel = channel;
+            _logger = logger;
+        }
 
-            try
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            _channel.QueueDeclare(queue: "buy-credits-queue",
+                                 durable: false,
+                                 exclusive: false,
+                                 autoDelete: false,
+                                 arguments: null);
+
+            _channel.QueueDeclare(queue: "subscribe-queue",
+                                 durable: false,
+                                 exclusive: false,
+                                 autoDelete: false,
+                                 arguments: null);
+
+            var creditsConsumer = new EventingBasicConsumer(_channel);
+            creditsConsumer.Received += async (model, ea) =>
             {
-                var options = new JsonSerializerOptions
-                {
-                    Converters = { new DateOnlyJsonConverter() }
-                };
-                var userCreatedEvent = JsonSerializer.Deserialize<UserCreatedEvent>(message, options);
-                _logger.LogInformation("Deserialized userCreatedEvent for user: {UserId}", userCreatedEvent.UserId);
+                if (stoppingToken.IsCancellationRequested) return;
 
-                using (var scope = _serviceProvider.CreateScope())
-                {
-                    var context = scope.ServiceProvider.GetRequiredService<UserInfoContext>();
+                var body = ea.Body.ToArray();
+                var message = Encoding.UTF8.GetString(body);
+                _logger.LogInformation("Received message in buy-credits-queue: {Message}", message);
 
-                    var newUser = new UserDatum
+                try
+                {
+                    var credits = JsonSerializer.Deserialize<Credit>(message);
+                    if (credits != null)
                     {
-                        UserId = userCreatedEvent.UserId,
-                        Name = userCreatedEvent.Name,
-                        LastName = userCreatedEvent.LastName,
-                        Address = userCreatedEvent.Address,
-                        DateOfBirth = userCreatedEvent.DateOfBirth,
-                        AccountCreated = userCreatedEvent.AccountCreated
-                    };
-
-                    context.UserData.Add(newUser);
-                    await context.SaveChangesAsync();
-
-                    _logger.LogInformation("User information saved for user: {UserId}", userCreatedEvent.UserId);
+                        using (var scope = _serviceProvider.CreateScope())
+                        {
+                            var context = scope.ServiceProvider.GetRequiredService<SubContext>();
+                            context.Credits.Add(credits);
+                            await context.SaveChangesAsync(stoppingToken);
+                        }
+                    }
                 }
-            }
-            catch (Exception ex)
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error processing message in buy-credits-queue: {Message}", message);
+                }
+            };
+
+            var subscribeConsumer = new EventingBasicConsumer(_channel);
+            subscribeConsumer.Received += async (model, ea) =>
             {
-                _logger.LogError(ex, "Error processing message: {Message}", message);
-            }
-        };
+                if (stoppingToken.IsCancellationRequested) return;
 
-        _channel.BasicConsume(queue: "user.created", autoAck: true, consumer: consumer);
+                var body = ea.Body.ToArray();
+                var message = Encoding.UTF8.GetString(body);
+                _logger.LogInformation("Received message in subscribe-queue: {Message}", message);
 
-        _logger.LogInformation("RabbitMQ consumer started.");
-        return Task.CompletedTask;
-    }
-}
+                try
+                {
+                    var userSubscribe = JsonSerializer.Deserialize<UserSubscription>(message);
+                    if (userSubscribe != null)
+                    {
+                        using (var scope = _serviceProvider.CreateScope())
+                        {
+                            var context = scope.ServiceProvider.GetRequiredService<SubContext>();
+                            context.UserSubscriptions.Add(userSubscribe);
+                            await context.SaveChangesAsync(stoppingToken);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error processing message in subscribe-queue: {Message}", message);
+                }
+            };
 
-// Custom DateOnly JsonConverter
-public class DateOnlyJsonConverter : JsonConverter<DateOnly>
-{
-    private readonly string _format = "yyyy-MM-dd";
+            _channel.BasicConsume(queue: "buy-credits-queue",
+                                 autoAck: true,
+                                 consumer: creditsConsumer);
 
-    public override DateOnly Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        return DateOnly.ParseExact(reader.GetString(), _format);
-    }
+            _channel.BasicConsume(queue: "subscribe-queue",
+                                 autoAck: true,
+                                 consumer: subscribeConsumer);
 
-    public override void Write(Utf8JsonWriter writer, DateOnly value, JsonSerializerOptions options)
-    {
-        writer.WriteStringValue(value.ToString(_format));
+            return Task.CompletedTask;
+        }
+
+        public override Task StopAsync(CancellationToken stoppingToken)
+        {
+            _logger.LogInformation("RabbitMqConsumerService is stopping.");
+            _channel?.Dispose();
+            return base.StopAsync(stoppingToken);
+        }
     }
 }
