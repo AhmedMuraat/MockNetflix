@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-const BuyCredits = ({ token, userId }) => {
+const BuyCredits = ({ token }) => {
     const [amount, setAmount] = useState('');
     const [totalCredits, setTotalCredits] = useState(0);
     const [hasPremium, setHasPremium] = useState(false);
@@ -9,7 +9,7 @@ const BuyCredits = ({ token, userId }) => {
 
     const checkPremiumStatus = useCallback(async () => {
         try {
-            const response = await axios.get(`http://48.217.203.73:5000/api/subscribe/haspremium/${userId}`, {
+            const response = await axios.get('http://48.217.203.73:5000/api/subscribe/haspremium', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setHasPremium(response.data.HasPremium);
@@ -17,7 +17,7 @@ const BuyCredits = ({ token, userId }) => {
             setMessage('Failed to check premium status');
             console.error(err);
         }
-    }, [token, userId]);
+    }, [token]);
 
     useEffect(() => {
         checkPremiumStatus();
@@ -28,7 +28,7 @@ const BuyCredits = ({ token, userId }) => {
         try {
             const response = await axios.post(
                 'http://48.217.203.73:5000/api/subscribe/buycredits',
-                { userId, amount },
+                { amount: parseInt(amount) },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             setMessage(response.data.Message); // Display the message from the response
@@ -41,7 +41,7 @@ const BuyCredits = ({ token, userId }) => {
 
     const getTotalCredits = async () => {
         try {
-            const response = await axios.get(`http://48.217.203.73:5000/api/subscribe/totalcredits/${userId}`, {
+            const response = await axios.get('http://48.217.203.73:5000/api/subscribe/totalcredits', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setTotalCredits(response.data.TotalCredits);
