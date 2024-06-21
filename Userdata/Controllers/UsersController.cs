@@ -73,9 +73,9 @@ namespace Userdata.Controllers
 
         // PUT: api/UserInfo/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUserInfo(int id, [FromBody] UserDatum userInfo, [FromBody] UserUpdateInfo updateInfo)
+        public async Task<IActionResult> PutUserInfo(int id, [FromBody] UserUpdateRequest userUpdateRequest)
         {
-            if (id != userInfo.UserInfoId)
+            if (id != userUpdateRequest.UserInfoId)
             {
                 return BadRequest();
             }
@@ -87,10 +87,10 @@ namespace Userdata.Controllers
             }
 
             // Update the existing user info
-            existingUserInfo.Name = userInfo.Name;
-            existingUserInfo.LastName = userInfo.LastName;
-            existingUserInfo.Address = userInfo.Address;
-            existingUserInfo.DateOfBirth = userInfo.DateOfBirth;
+            existingUserInfo.Name = userUpdateRequest.Name;
+            existingUserInfo.LastName = userUpdateRequest.LastName;
+            existingUserInfo.Address = userUpdateRequest.Address;
+            existingUserInfo.DateOfBirth = userUpdateRequest.DateOfBirth;
 
             _context.Entry(existingUserInfo).State = EntityState.Modified;
 
@@ -102,8 +102,8 @@ namespace Userdata.Controllers
                 var message = new
                 {
                     UserId = existingUserInfo.UserId,
-                    Username = updateInfo.Username,
-                    Email = updateInfo.Email
+                    Username = userUpdateRequest.Username,
+                    Email = userUpdateRequest.Email
                 };
                 var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
                 _channel.BasicPublish(exchange: "",
