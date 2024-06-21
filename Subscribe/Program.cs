@@ -7,7 +7,6 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using RabbitMQ.Client;
 using Subscribe.Models;
-using Subscribe.Rabbit;
 using System.Data;
 using System.Text;
 
@@ -47,7 +46,7 @@ builder.Services.AddDbContext<SubContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add hosted service for UserCreatedConsumer
-builder.Services.AddHostedService<RabbitMqConsumerService>();
+//builder.Services.AddHostedService<RabbitMqConsumerService>();
 
 // Configure JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

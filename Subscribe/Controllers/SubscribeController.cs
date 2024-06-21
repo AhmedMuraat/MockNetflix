@@ -1,14 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
-using RabbitMQ.Client;
-using System.Text.Json;
-using System.Text;
 using Microsoft.Extensions.Logging;
-using System.Net.Http;
 using System.Threading.Tasks;
+using System.Net.Http;
 using Subscribe.Models;
 using System.Linq;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Subscribe.Controllers
 {
@@ -18,14 +16,12 @@ namespace Subscribe.Controllers
     public class SubscribeController : ControllerBase
     {
         private readonly SubContext _context;
-        private readonly IModel _channel;
         private readonly ILogger<SubscribeController> _logger;
         private readonly HttpClient _httpClient;
 
-        public SubscribeController(SubContext context, IModel channel, ILogger<SubscribeController> logger, IHttpClientFactory httpClientFactory)
+        public SubscribeController(SubContext context, ILogger<SubscribeController> logger, IHttpClientFactory httpClientFactory)
         {
             _context = context;
-            _channel = channel;
             _logger = logger;
             _httpClient = httpClientFactory.CreateClient();
             _httpClient.BaseAddress = new Uri("http://48.217.203.73:5000"); // Set base address to the user info service
@@ -70,11 +66,8 @@ namespace Subscribe.Controllers
                 throw;
             }
 
-            SendMessageToQueue("buy-credits-queue", new { UserId = request.UserId, Amount = request.Amount });
-
             return Ok(new { UserId = request.UserId, TotalCredits = credits.Amount, Message = "Credits purchased successfully" });
         }
-
 
         [HttpGet("totalcredits")]
         public async Task<IActionResult> GetTotalCredits([FromHeader] string authorization, [FromQuery] int userId)
@@ -122,8 +115,6 @@ namespace Subscribe.Controllers
             _context.UserSubscriptions.Add(userSubscription);
             await _context.SaveChangesAsync();
 
-            SendMessageToQueue("subscribe-queue", new { UserId = request.UserId, PlanId = request.PlanId });
-
             return Ok(new { UserId = request.UserId, PlanId = request.PlanId, Message = "Subscription successful" });
         }
 
@@ -144,7 +135,7 @@ namespace Subscribe.Controllers
 
         private async Task<User> GetUserByIdAsync(string authorization, int userId)
         {
-            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authorization.Split(' ')[1]);
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authorization.Split(" ")[1]);
             var response = await _httpClient.GetAsync($"/api/users/{userId}");
             if (response.IsSuccessStatusCode)
             {
@@ -153,23 +144,6 @@ namespace Subscribe.Controllers
 
             _logger.LogWarning("Failed to fetch user details for userId: {UserId}. Status code: {StatusCode}", userId, response.StatusCode);
             return null;
-        }
-
-        private void SendMessageToQueue(string queueName, object message)
-        {
-            try
-            {
-                var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
-                _channel.BasicPublish(exchange: "",
-                                     routingKey: queueName,
-                                     basicProperties: null,
-                                     body: body);
-                _logger.LogInformation("Message sent to queue {QueueName}: {Message}", queueName, JsonSerializer.Serialize(message));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error sending message to queue {QueueName}: {Message}", queueName, JsonSerializer.Serialize(message));
-            }
         }
     }
 
