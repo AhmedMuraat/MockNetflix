@@ -5,6 +5,7 @@ import Login from './components/Login';
 import MainPage from './components/MainPage';
 import Subscribe from './components/Subscribe';
 import BuyCredits from './components/BuyCredits';
+import UserInfo from "./components/UserInfo";
 
 const App = () => {
     const [token, setToken] = useState(null);
