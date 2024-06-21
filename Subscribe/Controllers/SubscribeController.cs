@@ -55,9 +55,9 @@ namespace Subscribe.Controllers
             {
                 credits.Amount += request.Amount;
                 credits.PurchaseDate = DateOnly.FromDateTime(DateTime.UtcNow);
-                _context.Credits.Update(credits);
             }
 
+            // Save the changes to the existing or new Credit entity
             await _context.SaveChangesAsync();
 
             SendMessageToQueue("buy-credits-queue", new { UserId = request.UserId, Amount = request.Amount });
