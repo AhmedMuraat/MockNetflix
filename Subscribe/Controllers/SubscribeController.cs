@@ -133,7 +133,7 @@ namespace Subscribe.Controllers
 
         private async Task<User> GetUserByIdAsync(string authorization, int userId)
         {
-            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authorization);
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authorization.Split(' ')[1]);
             var response = await _httpClient.GetAsync($"/api/users/{userId}");
             if (response.IsSuccessStatusCode)
             {
