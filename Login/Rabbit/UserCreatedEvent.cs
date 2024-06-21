@@ -1,4 +1,4 @@
-﻿namespace Login.Handlers
+﻿namespace Login.Rabbit
 {
     public class UserCreatedEvent
     {
