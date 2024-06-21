@@ -75,7 +75,6 @@ namespace Login.Controllers
 
             return Ok(user);
         }
-    }
 
     [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] User login)
