@@ -87,10 +87,12 @@ namespace Login.Rabbit
                         using (var scope = _serviceProvider.CreateScope())
                         {
                             var context = scope.ServiceProvider.GetRequiredService<NetflixLoginContext>();
-                            var user = await context.Users.FirstOrDefaultAsync(u => u.Id == deleteMessage.UserId);
+                            var user = await context.Users.Include(u => u.RefreshTokens)
+                                                          .FirstOrDefaultAsync(u => u.Id == deleteMessage.UserId);
                             if (user != null)
                             {
-                                context.Users.Remove(user);
+                                context.RefreshTokens.RemoveRange(user.RefreshTokens); // Delete related refresh tokens
+                                context.Users.Remove(user); // Delete the user
                                 await context.SaveChangesAsync(stoppingToken);
                             }
                         }
