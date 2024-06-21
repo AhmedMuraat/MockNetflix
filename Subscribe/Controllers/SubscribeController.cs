@@ -37,6 +37,7 @@ namespace Subscribe.Controllers
             var user = await GetUserByIdAsync(authorization, request.UserId);
             if (user == null)
             {
+                _logger.LogWarning("User not found for UserId: {UserId}", request.UserId);
                 return NotFound(new { Message = "User not found" });
             }
 
@@ -50,20 +51,30 @@ namespace Subscribe.Controllers
                     PurchaseDate = DateOnly.FromDateTime(DateTime.UtcNow)
                 };
                 _context.Credits.Add(credits);
+                _logger.LogInformation("Created new credit record for UserId: {UserId} with Amount: {Amount}", request.UserId, request.Amount);
             }
             else
             {
                 credits.Amount += request.Amount;
                 credits.PurchaseDate = DateOnly.FromDateTime(DateTime.UtcNow);
+                _logger.LogInformation("Updated existing credit record for UserId: {UserId} with new Amount: {Amount}", request.UserId, credits.Amount);
             }
 
-            // Save the changes to the existing or new Credit entity
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving changes to credits for UserId: {UserId}", request.UserId);
+                throw;
+            }
 
             SendMessageToQueue("buy-credits-queue", new { UserId = request.UserId, Amount = request.Amount });
 
             return Ok(new { UserId = request.UserId, TotalCredits = credits.Amount, Message = "Credits purchased successfully" });
         }
+
 
         [HttpGet("totalcredits")]
         public async Task<IActionResult> GetTotalCredits([FromHeader] string authorization, [FromQuery] int userId)

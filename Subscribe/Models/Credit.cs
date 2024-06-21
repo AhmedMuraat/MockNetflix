@@ -19,4 +19,9 @@ public partial class Credit
     public int Amount { get; set; }
 
     public DateOnly PurchaseDate { get; set; }
+
+    public Credit()
+    {
+        ExternalUserId = -1; // Default to an invalid value to catch uninitialized errors
+    }
 }
