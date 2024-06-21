@@ -44,8 +44,15 @@ namespace Subscribe.Rabbit
                         using (var scope = _serviceProvider.CreateScope())
                         {
                             var context = scope.ServiceProvider.GetRequiredService<SubContext>();
+
+                            // Delete user subscriptions
                             var userSubscriptions = context.UserSubscriptions.Where(us => us.ExternalUserId == deleteMessage.UserId);
                             context.UserSubscriptions.RemoveRange(userSubscriptions);
+
+                            // Delete user credits
+                            var userCredits = context.Credits.Where(c => c.ExternalUserId == deleteMessage.UserId);
+                            context.Credits.RemoveRange(userCredits);
+
                             await context.SaveChangesAsync(stoppingToken);
                         }
                     }

@@ -50,10 +50,15 @@ const Register = () => {
                 <input name="name" placeholder="Name" onChange={handleChange} />
                 <input name="lastName" placeholder="Last Name" onChange={handleChange} />
                 <input name="address" placeholder="Address" onChange={handleChange} />
-                <input name="dateOfBirth" placeholder="Date of Birth" onChange={handleChange} />
+                <input
+                    name="dateOfBirth"
+                    type="date"
+                    placeholder="Date of Birth"
+                    onChange={handleChange}
+                />
                 <button type="submit">Register</button>
             </form>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
+            {error && <p style={{color: 'red'}}>{error}</p>}
             <Link to="/login">Already have an account? Login here</Link>
         </div>
     );
