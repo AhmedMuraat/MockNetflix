@@ -1,7 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RabbitMQ.Client;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Channels;
 using Userdata.Models;
+using Userdata.Rabbit;
 
 namespace Userdata.Controllers
 {
@@ -12,16 +17,18 @@ namespace Userdata.Controllers
     {
         private readonly UserInfoContext _context;
         private readonly ILogger<UsersController> _logger;
+        private readonly IModel _channel;
 
-        public UsersController(UserInfoContext context, ILogger<UsersController> logger)
+        public UsersController(UserInfoContext context, ILogger<UsersController> logger, IModel channel)
         {
             _context = context;
             _logger = logger;
+            _channel = channel;
         }
 
 
-            // GET: api/UserInfo
-            [HttpGet]
+        // GET: api/UserInfo
+        [HttpGet]
             
             public async Task<IActionResult> GetUsersInfo()
             {
@@ -66,18 +73,45 @@ namespace Userdata.Controllers
 
         // PUT: api/UserInfo/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUserInfo(int id, [FromBody] UserDatum userInfo)
+        public async Task<IActionResult> PutUserInfo(int id, [FromBody] UserDatum userInfo, [FromBody] UserUpdateInfo updateInfo)
         {
             if (id != userInfo.UserInfoId)
             {
                 return BadRequest();
             }
 
-            _context.Entry(userInfo).State = EntityState.Modified;
+            var existingUserInfo = await _context.UserData.FirstOrDefaultAsync(u => u.UserInfoId == id);
+            if (existingUserInfo == null)
+            {
+                return NotFound();
+            }
+
+            // Update the existing user info
+            existingUserInfo.Name = userInfo.Name;
+            existingUserInfo.LastName = userInfo.LastName;
+            existingUserInfo.Address = userInfo.Address;
+            existingUserInfo.DateOfBirth = userInfo.DateOfBirth;
+
+            _context.Entry(existingUserInfo).State = EntityState.Modified;
 
             try
             {
                 await _context.SaveChangesAsync();
+
+                // Send a RabbitMQ message to update the Login database
+                var message = new
+                {
+                    UserId = existingUserInfo.UserId,
+                    Username = updateInfo.Username,
+                    Email = updateInfo.Email
+                };
+                var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
+                _channel.BasicPublish(exchange: "",
+                                     routingKey: "user-update-queue",
+                                     basicProperties: null,
+                                     body: body);
+
+                return NoContent();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -90,8 +124,6 @@ namespace Userdata.Controllers
                     throw;
                 }
             }
-
-            return NoContent();
         }
 
         // DELETE: api/UserInfo/5

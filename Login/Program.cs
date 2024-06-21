@@ -11,6 +11,7 @@ using Login.Models;
 using RabbitMQ.Client;
 using Microsoft.Data.SqlClient;
 using System.Text.Json.Serialization;
+using Login.Rabbit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -75,6 +76,9 @@ builder.Services.AddSingleton<IModel>(sp =>
     var connection = sp.GetRequiredService<IConnection>();
     return connection.CreateModel();
 });
+
+// Register RabbitMQ consumer service
+builder.Services.AddHostedService<RabbitMqConsumerService>();
 
 var app = builder.Build();
 

@@ -7,9 +7,12 @@ const UserInfo = ({ token, userId }) => {
         userId: '',
         name: '',
         lastName: '',
-        email: '',
         address: '',
         dateOfBirth: ''
+    });
+    const [updateInfo, setUpdateInfo] = useState({
+        username: '',
+        email: ''
     });
     const [message, setMessage] = useState('');
 
@@ -24,9 +27,12 @@ const UserInfo = ({ token, userId }) => {
                     userId: response.data.userId,
                     name: response.data.name,
                     lastName: response.data.lastName,
-                    email: response.data.email,
                     address: response.data.address,
                     dateOfBirth: response.data.dateOfBirth
+                });
+                setUpdateInfo({
+                    username: response.data.username,
+                    email: response.data.email
                 });
             } catch (err) {
                 setMessage('Failed to fetch user information');
@@ -37,9 +43,17 @@ const UserInfo = ({ token, userId }) => {
         fetchUserInfo();
     }, [token, userId]);
 
-    const handleChange = (e) => {
+    const handleUserInfoChange = (e) => {
         const { name, value } = e.target;
         setUserInfo((prevState) => ({
+            ...prevState,
+            [name]: value
+        }));
+    };
+
+    const handleUpdateInfoChange = (e) => {
+        const { name, value } = e.target;
+        setUpdateInfo((prevState) => ({
             ...prevState,
             [name]: value
         }));
@@ -48,7 +62,10 @@ const UserInfo = ({ token, userId }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.put(`http://48.217.203.73:5000/api/users/${userInfo.userInfoId}`, userInfo, {
+            await axios.put(`http://48.217.203.73:5000/api/users/${userInfo.userInfoId}`, {
+                ...userInfo,
+                ...updateInfo
+            }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setMessage('User information updated successfully');
@@ -65,27 +82,27 @@ const UserInfo = ({ token, userId }) => {
             <form onSubmit={handleSubmit}>
                 <div>
                     <label>Username:</label>
-                    <input type="text" name="username" value={userInfo.username} onChange={handleChange} />
+                    <input type="text" name="username" value={updateInfo.username} onChange={handleUpdateInfoChange} />
                 </div>
                 <div>
                     <label>Name:</label>
-                    <input type="text" name="name" value={userInfo.name} onChange={handleChange} />
+                    <input type="text" name="name" value={userInfo.name} onChange={handleUserInfoChange} />
                 </div>
                 <div>
                     <label>Last Name:</label>
-                    <input type="text" name="lastName" value={userInfo.lastName} onChange={handleChange} />
+                    <input type="text" name="lastName" value={userInfo.lastName} onChange={handleUserInfoChange} />
                 </div>
                 <div>
                     <label>Email:</label>
-                    <input type="email" name="email" value={userInfo.email} onChange={handleChange} />
+                    <input type="email" name="email" value={updateInfo.email} onChange={handleUpdateInfoChange} />
                 </div>
                 <div>
                     <label>Address:</label>
-                    <input type="text" name="address" value={userInfo.address} onChange={handleChange} />
+                    <input type="text" name="address" value={userInfo.address} onChange={handleUserInfoChange} />
                 </div>
                 <div>
                     <label>Date of Birth:</label>
-                    <input type="date" name="dateOfBirth" value={userInfo.dateOfBirth} onChange={handleChange} />
+                    <input type="date" name="dateOfBirth" value={userInfo.dateOfBirth} onChange={handleUserInfoChange} />
                 </div>
                 <button type="submit">Update</button>
             </form>
