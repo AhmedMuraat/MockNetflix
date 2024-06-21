@@ -59,18 +59,25 @@ namespace Login.Controllers
                 Email = registerRequest.Email,
                 Address = registerRequest.Address,
                 DateOfBirth = parsedDateOfBirth,
-                AccountCreated = DateTime.UtcNow
+                AccountCreated = DateTime.UtcNow,
+                RoleId = user.RoleId
             };
 
-            var messageBody = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(userCreatedEvent));
+            var options = new JsonSerializerOptions
+            {
+                Converters = { new DateOnlyJsonConverter() }
+            };
+
+            var messageBody = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(userCreatedEvent, options));
             _rabbitMqChannel.BasicPublish(exchange: "", routingKey: "user.created", basicProperties: null, body: messageBody);
 
             _logger.LogInformation("User creation message published to RabbitMQ: {UserId}", user.Id);
 
             return Ok(user);
         }
+    }
 
-        [HttpPost("login")]
+    [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] User login)
         {
             var user = await _context.Users.Include(u => u.Role)

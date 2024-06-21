@@ -10,24 +10,29 @@ const Register = () => {
         name: '',
         lastName: '',
         address: '',
-        dateOfBirth: '',
+        dateOfBirth: ''
     });
     const navigate = useNavigate();
 
     const handleChange = (e) => {
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value,
+            [e.target.name]: e.target.value
         });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log(formData); // Log the formData to verify the payload
         try {
-            await axios.post('http://48.217.203.73:5000/api/auth/register', formData);
+            const response = await axios.post('http://48.217.203.73:5000/api/auth/register', formData, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
             navigate('/login');
         } catch (err) {
-            console.error(err);
+            console.error(err.response.data);
         }
     };
 
@@ -40,7 +45,12 @@ const Register = () => {
                 <input name="name" placeholder="Name" onChange={handleChange} />
                 <input name="lastName" placeholder="Last Name" onChange={handleChange} />
                 <input name="address" placeholder="Address" onChange={handleChange} />
-                <input name="dateOfBirth" placeholder="Date of Birth" onChange={handleChange} />
+                <input
+                    name="dateOfBirth"
+                    type="date"
+                    placeholder="Date of Birth"
+                    onChange={handleChange}
+                />
                 <button type="submit">Register</button>
             </form>
             <Link to="/login">Already have an account? Login here</Link>

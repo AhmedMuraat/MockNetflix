@@ -32,7 +32,11 @@ public class UserCreatedConsumer : BackgroundService
 
             try
             {
-                var userCreatedEvent = JsonSerializer.Deserialize<UserCreatedEvent>(message);
+                var options = new JsonSerializerOptions
+                {
+                    Converters = { new DateOnlyJsonConverter() }
+                };
+                var userCreatedEvent = JsonSerializer.Deserialize<UserCreatedEvent>(message, options);
                 _logger.LogInformation("Deserialized userCreatedEvent for user: {UserId}", userCreatedEvent.UserId);
 
                 using (var scope = _serviceProvider.CreateScope())
