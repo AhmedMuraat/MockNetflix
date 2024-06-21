@@ -17,3 +17,4 @@ namespace Userdata.Models
             writer.WriteStringValue(value.ToString(_format));
         }
     }
+}
