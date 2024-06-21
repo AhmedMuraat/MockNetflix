@@ -54,7 +54,7 @@ builder.Services.AddDbContext<SubContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add hosted service for UserCreatedConsumer
-//builder.Services.AddHostedService<RabbitMqConsumerService>();
+builder.Services.AddHostedService<RabbitMqConsumerService>();
 
 // Configure JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

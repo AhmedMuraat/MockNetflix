@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 
 const Login = ({ setToken, setUsername, setUserId }) => {
     const [formData, setFormData] = useState({ email: '', password: '' });
+    const [error, setError] = useState('');
     const navigate = useNavigate();
 
     const handleChange = (e) => {
@@ -23,9 +24,14 @@ const Login = ({ setToken, setUsername, setUserId }) => {
             });
             setToken(response.data.accessToken);
             setUsername(response.data.username);
-            setUserId(response.data.id); // Set the user ID
+            setUserId(response.data.id);
             navigate('/main');
         } catch (err) {
+            if (err.response && err.response.data && err.response.data.message) {
+                setError(err.response.data.message);
+            } else {
+                setError('Login failed. Please try again.');
+            }
             console.error(err);
         }
     };
@@ -37,6 +43,7 @@ const Login = ({ setToken, setUsername, setUserId }) => {
                 <input name="password" placeholder="Password" type="password" onChange={handleChange} />
                 <button type="submit">Login</button>
             </form>
+            {error && <p style={{ color: 'red' }}>{error}</p>}
             <Link to="/register">Don't have an account? Register here</Link>
         </div>
     );
