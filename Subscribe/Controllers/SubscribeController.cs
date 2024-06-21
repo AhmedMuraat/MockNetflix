@@ -76,12 +76,17 @@ namespace Subscribe.Controllers
         [HttpGet("totalcredits/{userId}")]
         public async Task<IActionResult> GetTotalCredits(int userId)
         {
-            var totalCredits = await _context.Credits
+            var credits = await _context.Credits
                 .Where(c => c.ExternalUserId == userId)
-                .SumAsync(c => c.Amount);
+                .ToListAsync();
+
+            _logger.LogInformation("Credits for user {UserId}: {@Credits}", userId, credits);
+
+            var totalCredits = credits.Sum(c => c.Amount);
 
             if (totalCredits == 0)
             {
+                _logger.LogWarning("No credits found for user {UserId}", userId);
                 return NotFound("User not found or no credits available");
             }
 
@@ -93,6 +98,7 @@ namespace Subscribe.Controllers
 
             return Ok(response);
         }
+
 
 
         [HttpPost("subscribe")]
