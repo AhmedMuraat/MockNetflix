@@ -24,7 +24,7 @@ namespace Subscribe.Controllers
             _channel = channel;
             _logger = logger;
             _httpClient = httpClientFactory.CreateClient();
-            _httpClient.BaseAddress = new Uri("http://userinfo:8080"); // Set base address to the service name
+            _httpClient.BaseAddress = new Uri("http://48.217.203.73:5000"); // Set base address to the service name
         }
 
         [HttpPost("buycredits")]
@@ -203,6 +203,12 @@ namespace Subscribe.Controllers
 
         private async Task<User> GetUserById(int userId)
         {
+            if (userId <= 0)
+            {
+                _logger.LogWarning("Invalid userId: {UserId}", userId);
+                return null;
+            }
+
             try
             {
                 var response = await _httpClient.GetAsync($"/api/users/{userId}");
@@ -218,19 +224,27 @@ namespace Subscribe.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching user details from userinfo service for user ID {UserId}");
+                _logger.LogError(ex, "Error fetching user details from userinfo service for user ID {UserId}", userId);
             }
+
             return null;
         }
 
         private void SendMessageToQueue(string queueName, object message)
         {
-            var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
-            _channel.BasicPublish(exchange: "",
-                                 routingKey: queueName,
-                                 basicProperties: null,
-                                 body: body);
-            _logger.LogInformation("Message sent to queue {QueueName}: {Message}", queueName, message);
+            try
+            {
+                var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
+                _channel.BasicPublish(exchange: "",
+                                     routingKey: queueName,
+                                     basicProperties: null,
+                                     body: body);
+                _logger.LogInformation("Message sent to queue {QueueName}: {Message}", queueName, JsonSerializer.Serialize(message));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending message to queue {QueueName}: {Message}", queueName, JsonSerializer.Serialize(message));
+            }
         }
     }
 }
