@@ -9,7 +9,7 @@ const BuyCredits = ({ token, userId }) => {
 
     const checkPremiumStatus = useCallback(async () => {
         try {
-            const response = await axios.get(`http://48.217.203.73:5000/api/subscribe/haspremium?userId=${userId}`, {
+            const response = await axios.get(`http://48.217.203.73:5000/api/subscribe/haspremium/${userId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setHasPremium(response.data.HasPremium);
@@ -41,7 +41,7 @@ const BuyCredits = ({ token, userId }) => {
 
     const getTotalCredits = async () => {
         try {
-            const response = await axios.get(`http://48.217.203.73:5000/api/subscribe/totalcredits?userId=${userId}`, {
+            const response = await axios.get(`http://48.217.203.73:5000/api/subscribe/totalcredits/${userId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setTotalCredits(response.data.TotalCredits);

@@ -69,16 +69,26 @@ namespace Subscribe.Controllers
             return Ok(new { UserId = request.UserId, TotalCredits = credits.Amount, Message = "Credits purchased successfully" });
         }
 
-        [HttpGet("totalcredits")]
-        public async Task<IActionResult> GetTotalCredits([FromHeader] string authorization, [FromQuery] int userId)
+        [HttpGet("totalcredits/{userId}")]
+        public async Task<IActionResult> GetTotalCredits([FromHeader] string authorization, [FromRoute] int userId)
         {
+            // Ensure the authorization header is correctly parsed and userId is valid
+            if (string.IsNullOrWhiteSpace(authorization))
+            {
+                _logger.LogWarning("Authorization header is missing.");
+                return Unauthorized(new { Message = "Authorization header is missing." });
+            }
+
             var user = await GetUserByIdAsync(authorization, userId);
             if (user == null)
             {
+                _logger.LogWarning("User not found for UserId: {UserId}", userId);
                 return NotFound(new { Message = "User not found" });
             }
 
-            var totalCredits = await _context.Credits.Where(c => c.ExternalUserId == userId).SumAsync(c => c.Amount);
+            var totalCredits = await _context.Credits
+                                             .Where(c => c.ExternalUserId == userId)
+                                             .SumAsync(c => c.Amount);
 
             if (totalCredits == 0)
             {
@@ -118,8 +128,8 @@ namespace Subscribe.Controllers
             return Ok(new { UserId = request.UserId, PlanId = request.PlanId, Message = "Subscription successful" });
         }
 
-        [HttpGet("haspremium")]
-        public async Task<IActionResult> HasPremiumSubscription([FromHeader] string authorization, [FromQuery] int userId)
+        [HttpGet("haspremium/{userId}")]
+        public async Task<IActionResult> HasPremiumSubscription([FromHeader] string authorization, [FromRoute] int userId)
         {
             var user = await GetUserByIdAsync(authorization, userId);
             if (user == null)
