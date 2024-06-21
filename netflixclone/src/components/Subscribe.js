@@ -3,6 +3,7 @@ import axios from 'axios';
 
 const Subscribe = ({ token, userId }) => {
     const [planId, setPlanId] = useState('');
+    const [message, setMessage] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -12,8 +13,9 @@ const Subscribe = ({ token, userId }) => {
                 { userId, planId },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            alert('Subscribed successfully');
+            setMessage('Subscribed successfully');
         } catch (err) {
+            setMessage('Failed to subscribe');
             console.error(err);
         }
     };
@@ -24,6 +26,7 @@ const Subscribe = ({ token, userId }) => {
                 <input name="planId" placeholder="Plan ID" value={planId} onChange={(e) => setPlanId(e.target.value)} />
                 <button type="submit">Subscribe</button>
             </form>
+            {message && <p>{message}</p>}
         </div>
     );
 };

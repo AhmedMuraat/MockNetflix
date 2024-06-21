@@ -45,6 +45,7 @@ namespace Subscribe.Controllers
             }
             else
             {
+                // If the user has no existing credits, provide a message
                 var credits = new Credit
                 {
                     ExternalUserId = userId,
@@ -62,13 +63,15 @@ namespace Subscribe.Controllers
             var response = new
             {
                 UserId = userId,
-                TotalCredits = updatedCredits
+                TotalCredits = updatedCredits,
+                Message = existingCredits == null ? "User had no previous credits, new credits added" : "Credits updated successfully"
             };
 
             SendMessageToQueue("buy-credits-queue", response);
 
             return Ok(response);
         }
+
 
         [HttpGet("totalcredits/{userId}")]
         public async Task<IActionResult> GetTotalCredits(int userId)

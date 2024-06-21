@@ -23,7 +23,7 @@ const Login = ({ setToken, setUsername, setUserId }) => {
             });
             setToken(response.data.accessToken);
             setUsername(response.data.username);
-            setUserId(response.data.userId); // assuming response contains userId
+            setUserId(response.data.id); // Set the user ID
             navigate('/main');
         } catch (err) {
             console.error(err);
