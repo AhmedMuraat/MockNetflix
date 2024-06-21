@@ -10,6 +10,6 @@
         public string Address { get; set; }
         public DateOnly DateOfBirth { get; set; }
         public DateTime AccountCreated { get; set; }
-        public int RoleId { get; set; }
+        public int? RoleId { get; set; }  // Make RoleId nullable
     }
 }
