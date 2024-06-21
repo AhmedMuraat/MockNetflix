@@ -15,11 +15,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHealthChecks()
     .AddCheck("sqlserver", new SqlServerHealthCheck("Server=dbuserinfo;Database=UserInfo;User Id=sa;Password=Sjeemaa12!;TrustServerCertificate=true;"));
 
+// Configure CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("MyPolicy", builder =>
+    options.AddPolicy("AllowAll", builder =>
     {
-        builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
     });
 });
 
@@ -88,9 +91,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseCors("AllowAll");
 app.UseRouting();
-app.UseCors("MyPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 
