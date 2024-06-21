@@ -121,10 +121,4 @@ namespace Login.Rabbit
             return base.StopAsync(stoppingToken);
         }
     }
-
-
-    public class UserDeleteMessage
-    {
-        public int UserId { get; set; }
-    }
 }
