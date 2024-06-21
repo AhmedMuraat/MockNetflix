@@ -205,7 +205,7 @@ namespace Subscribe.Controllers
         {
             try
             {
-                var response = await _httpClient.GetAsync($"/api/Users/{userId}");
+                var response = await _httpClient.GetAsync($"/api/users/{userId}");
                 if (response.IsSuccessStatusCode)
                 {
                     _logger.LogInformation("User found with ID {UserId}", userId);
@@ -218,7 +218,7 @@ namespace Subscribe.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching user details from Login service for user ID {UserId}");
+                _logger.LogError(ex, "Error fetching user details from userinfo service for user ID {UserId}");
             }
             return null;
         }
