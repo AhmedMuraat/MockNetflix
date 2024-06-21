@@ -209,9 +209,13 @@ namespace Subscribe.Controllers
                 return null;
             }
 
+            var requestUrl = $"/api/users/{userId}";
+            _logger.LogInformation("Base address: {BaseAddress}", _httpClient.BaseAddress);
+            _logger.LogInformation("Attempting to fetch user with ID: {UserId} from URL: {RequestUrl}", userId, requestUrl);
+
             try
             {
-                var response = await _httpClient.GetAsync($"/api/users/{userId}");
+                var response = await _httpClient.GetAsync(requestUrl);
                 if (response.IsSuccessStatusCode)
                 {
                     _logger.LogInformation("User found with ID {UserId}", userId);
@@ -229,6 +233,7 @@ namespace Subscribe.Controllers
 
             return null;
         }
+
 
         private void SendMessageToQueue(string queueName, object message)
         {

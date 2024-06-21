@@ -10,12 +10,14 @@ namespace Userdata.Controllers
     [Authorize]
     public class UsersController : Controller
     {
-            private readonly UserInfoContext _context;
+        private readonly UserInfoContext _context;
+        private readonly ILogger<UsersController> _logger;
 
-            public UsersController(UserInfoContext context)
-            {
-                _context = context;
-            }
+        public UsersController(UserInfoContext context, ILogger<UsersController> logger)
+        {
+            _context = context;
+            _logger = logger;
+        }
 
 
             // GET: api/UserInfo
@@ -27,18 +29,22 @@ namespace Userdata.Controllers
                 return Ok(usersInfo);
             }
 
-            // GET: api/UserInfo/5
+        // GET: api/UserInfo/5
             [HttpGet("{id}")]
             public async Task<IActionResult> GetUserInfo(int id)
             {
+                _logger.LogInformation("Received request to fetch user info for userId: {UserId}", id);
+
                 // Find the user info by UserId, not UserInfoId
                 var userInfo = await _context.UserData.FirstOrDefaultAsync(u => u.UserId == id);
 
                 if (userInfo == null)
                 {
+                    _logger.LogWarning("User info for userId: {UserId} not found", id);
                     return NotFound();
                 }
 
+                _logger.LogInformation("User info for userId: {UserId} found", id);
                 return Ok(userInfo);
             }
 
