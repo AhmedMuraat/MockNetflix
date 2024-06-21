@@ -20,6 +20,7 @@ const App = () => {
                 <Route path="/main" element={token ? <MainPage username={username} /> : <Navigate to="/login" />} />
                 <Route path="/subscribe" element={token ? <Subscribe token={token} userId={userId} /> : <Navigate to="/login" />} />
                 <Route path="/buycredits" element={token ? <BuyCredits token={token} userId={userId} /> : <Navigate to="/login" />} />
+                <Route path="/userinfo" element={<UserInfo token={token} userId={userId} />} />
             </Routes>
         </Router>
     );

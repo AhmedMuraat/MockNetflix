@@ -7,12 +7,24 @@ const BuyCredits = ({ token, userId }) => {
     const [hasPremium, setHasPremium] = useState(false);
     const [message, setMessage] = useState('');
 
+    const fetchTotalCredits = useCallback(async () => {
+        try {
+            const response = await axios.get(`http://48.217.203.73:5000/api/subscribe/totalcredits/${userId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setTotalCredits(response.data.totalCredits); // Ensure to match the exact case
+        } catch (err) {
+            setMessage('Failed to get total credits');
+            console.error(err);
+        }
+    }, [token, userId]);
+
     const checkPremiumStatus = useCallback(async () => {
         try {
             const response = await axios.get(`http://48.217.203.73:5000/api/subscribe/haspremium/${userId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setHasPremium(response.data.HasPremium);
+            setHasPremium(response.data.hasPremium); // Ensure to match the exact case
         } catch (err) {
             setMessage('Failed to check premium status');
             console.error(err);
@@ -21,7 +33,8 @@ const BuyCredits = ({ token, userId }) => {
 
     useEffect(() => {
         checkPremiumStatus();
-    }, [checkPremiumStatus]);
+        fetchTotalCredits(); // Fetch total credits on component mount
+    }, [checkPremiumStatus, fetchTotalCredits]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -32,21 +45,9 @@ const BuyCredits = ({ token, userId }) => {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             setMessage(response.data.Message); // Display the message from the response
-            setTotalCredits(response.data.TotalCredits);
+            setTotalCredits(response.data.TotalCredits); // Update total credits after buying credits
         } catch (err) {
             setMessage('Failed to buy credits');
-            console.error(err);
-        }
-    };
-
-    const getTotalCredits = async () => {
-        try {
-            const response = await axios.get(`http://48.217.203.73:5000/api/subscribe/totalcredits/${userId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setTotalCredits(response.data.TotalCredits);
-        } catch (err) {
-            setMessage('Failed to get total credits');
             console.error(err);
         }
     };
@@ -58,7 +59,6 @@ const BuyCredits = ({ token, userId }) => {
                 <button type="submit">Buy Credits</button>
             </form>
             {message && <p>{message}</p>}
-            <button onClick={getTotalCredits}>Get Total Credits</button>
             <p>Total Credits: {totalCredits}</p>
             <p style={{ color: hasPremium ? 'yellow' : 'red' }}>
                 {hasPremium ? 'You have a premium subscription' : 'You do not have a premium subscription'}

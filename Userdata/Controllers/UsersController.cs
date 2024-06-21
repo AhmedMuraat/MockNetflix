@@ -64,38 +64,38 @@ namespace Userdata.Controllers
                 return CreatedAtAction("GetUserInfo", new { id = userInfo.UserInfoId }, userInfo);
             }
 
-            // PUT: api/UserInfo/5
-            [HttpPut("{id}")]
-            public async Task<IActionResult> PutUserInfo(int id, [FromBody] UserDatum userInfo)
+        // PUT: api/UserInfo/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutUserInfo(int id, [FromBody] UserDatum userInfo)
+        {
+            if (id != userInfo.UserInfoId)
             {
-                if (id != userInfo.UserInfoId)
-                {
-                    return BadRequest();
-                }
-
-                _context.Entry(userInfo).State = EntityState.Modified;
-
-                try
-                {
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!_context.UserData.Any(e => e.UserInfoId == id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-
-                return NoContent();
+                return BadRequest();
             }
 
-            // DELETE: api/UserInfo/5
-            [HttpDelete("{id}")]
+            _context.Entry(userInfo).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_context.UserData.Any(e => e.UserInfoId == id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        // DELETE: api/UserInfo/5
+        [HttpDelete("{id}")]
             public async Task<IActionResult> DeleteUserInfo(int id)
             {
                 var userInfo = await _context.UserData.FindAsync(id);
