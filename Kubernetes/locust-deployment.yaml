@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: locust-master
+  namespace: default
+spec:
+  selector:
+    app: locust
+    role: master
+  ports:
+    - protocol: TCP
+      port: 8089
+      targetPort: 8089
+      nodePort: 32089
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: locust-master
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: locust
+      role: master
+  template:
+    metadata:
+      labels:
+        app: locust
+        role: master
+    spec:
+      containers:
+        - name: locust-master
+          image: locustio/locust
+          args: ["-f", "/mnt/locust/locustfile.py", "--master"]
+          ports:
+            - containerPort: 8089
+          volumeMounts:
+            - name: locustfile
+              mountPath: /mnt/locust
+      volumes:
+        - name: locustfile
+          configMap:
+            name: locustfile-configmap
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: locust-worker
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: locust
+      role: worker
+  template:
+    metadata:
+      labels:
+        app: locust
+        role: worker
+    spec:
+      containers:
+        - name: locust-worker
+          image: locustio/locust
+          args: ["-f", "/mnt/locust/locustfile.py", "--worker", "--master-host=locust-master"]
+          volumeMounts:
+            - name: locustfile
+              mountPath: /mnt/locust
+      volumes:
+        - name: locustfile
+          configMap:
+            name: locustfile-configmap
