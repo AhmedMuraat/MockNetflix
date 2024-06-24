@@ -1,0 +1,142 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loginapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loginapi
+  template:
+    metadata:
+      labels:
+        app: loginapi
+    spec:
+      containers:
+        - name: loginapi
+          image: ahmedmuraat/login:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Development
+          volumeMounts:
+            - name: certs
+              mountPath: /app/certs
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+      volumes:
+        - name: certs
+          hostPath:
+            path: /path/to/your/certs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loginapi
+spec:
+  selector:
+    app: loginapi
+  ports:
+    - protocol: TCP
+      port: 8090
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: ahmedmuraat/apigateway:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: LOGIN_API_SERVICE_HOST
+              value: login-api
+            - name: USERINFO_SERVICE_HOST
+              value: userinfo
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+spec:
+  selector:
+    app: api-gateway
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 8080
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: userinfo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: userinfo
+  template:
+    metadata:
+      labels:
+        app: userinfo
+    spec:
+      containers:
+        - name: userinfo
+          image: ahmedmuraat/userdata:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Development
+          volumeMounts:
+            - name: certs
+              mountPath: /app/certs
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+      volumes:
+        - name: certs
+          hostPath:
+            path: /path/to/your/certs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: userinfo
+spec:
+  selector:
+    app: userinfo
+  ports:
+    - protocol: TCP
+      port: 8090
+      targetPort: 8080

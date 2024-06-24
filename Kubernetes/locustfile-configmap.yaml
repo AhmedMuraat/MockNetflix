@@ -5,7 +5,7 @@ metadata:
   namespace: default
 data:
   locustfile.py: |
-    from locust import HttpUser, TaskSet, task, between
+    from locust import HttpUser, task, between
     import random
     import string
 
@@ -13,7 +13,7 @@ data:
         letters = string.ascii_lowercase
         return ''.join(random.choice(letters) for i in range(length))
 
-    class UserBehavior(TaskSet):
+    class UserBehavior(HttpUser):
         wait_time = between(1, 5)
 
         @task
