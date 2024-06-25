@@ -36,7 +36,7 @@ namespace Login.Rabbit
                                   arguments: null);
 
             // Consumer for user updates
-            var updateConsumer = new EventingBasicConsumer(_channel);
+            var updateConsumer = new AsyncEventingBasicConsumer(_channel);
             updateConsumer.Received += async (model, ea) =>
             {
                 if (stoppingToken.IsCancellationRequested) return;
@@ -70,7 +70,7 @@ namespace Login.Rabbit
             };
 
             // Consumer for user deletions
-            var deleteConsumer = new EventingBasicConsumer(_channel);
+            var deleteConsumer = new AsyncEventingBasicConsumer(_channel);
             deleteConsumer.Received += async (model, ea) =>
             {
                 if (stoppingToken.IsCancellationRequested) return;
