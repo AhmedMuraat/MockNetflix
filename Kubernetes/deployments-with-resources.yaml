@@ -25,11 +25,11 @@ spec:
               mountPath: /app/certs
           resources:
             requests:
-              memory: "512Mi"
-              cpu: "500m"
+              memory: "256Mi"  # Adjusted memory request
+              cpu: "250m"      # Adjusted CPU request
             limits:
-              memory: "1Gi"
-              cpu: "750m" # Adjusted limit
+              memory: "512Mi"  # Adjusted memory limit
+              cpu: "500m"      # Adjusted CPU limit
       volumes:
         - name: certs
           hostPath:
@@ -73,11 +73,11 @@ spec:
               value: userinfo
           resources:
             requests:
-              memory: "512Mi"
-              cpu: "500m"
+              memory: "256Mi"  # Adjusted memory request
+              cpu: "250m"      # Adjusted CPU request
             limits:
-              memory: "1Gi"
-              cpu: "750m" # Adjusted limit
+              memory: "512Mi"  # Adjusted memory limit
+              cpu: "500m"      # Adjusted CPU limit
 ---
 apiVersion: v1
 kind: Service
@@ -119,11 +119,11 @@ spec:
               mountPath: /app/certs
           resources:
             requests:
-              memory: "512Mi"
-              cpu: "500m"
+              memory: "256Mi"  # Adjusted memory request
+              cpu: "250m"      # Adjusted CPU request
             limits:
-              memory: "1Gi"
-              cpu: "750m" # Adjusted limit
+              memory: "512Mi"  # Adjusted memory limit
+              cpu: "500m"      # Adjusted CPU limit
       volumes:
         - name: certs
           hostPath:
