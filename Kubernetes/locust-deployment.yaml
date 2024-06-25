@@ -63,7 +63,7 @@ metadata:
   name: locust-worker
   namespace: default
 spec:
-  replicas: 5  # Adjusted replicas for 500 users
+  replicas: 3  # Adjusted replicas for 500 users
   selector:
     matchLabels:
       app: locust

@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: loginapi
 spec:
-  replicas: 3
+  replicas: 2  # Adjusted replicas
   selector:
     matchLabels:
       app: loginapi
@@ -52,7 +52,7 @@ kind: Deployment
 metadata:
   name: api-gateway
 spec:
-  replicas: 3
+  replicas: 2  # Adjusted replicas
   selector:
     matchLabels:
       app: api-gateway
@@ -97,7 +97,7 @@ kind: Deployment
 metadata:
   name: userinfo
 spec:
-  replicas: 3
+  replicas: 2  # Adjusted replicas
   selector:
     matchLabels:
       app: userinfo
