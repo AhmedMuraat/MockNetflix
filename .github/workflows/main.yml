@@ -153,8 +153,6 @@ jobs:
 
       - name: Apply Kubernetes manifests - Other Services
         run: |
-          kubectl apply -f Kubernetes/deployment-api-gateway.yaml
-          kubectl apply -f Kubernetes/deployment-loginapi.yaml
           kubectl apply -f Kubernetes/deployment-subscribe.yaml
-          kubectl apply -f Kubernetes/deployment-userinfo.yaml
+          kubectl apply -f Kubernetes/deployment-with-resources.yaml
           kubectl apply -f Kubernetes/deployment-netflixclone.yaml
