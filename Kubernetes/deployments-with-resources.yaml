@@ -25,27 +25,11 @@ spec:
               mountPath: /app/certs
           resources:
             requests:
-              memory: "256Mi"
+              memory: "512Mi"
               cpu: "500m"
             limits:
-              memory: "512Mi"
+              memory: "1Gi"
               cpu: "1000m"
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3
       volumes:
         - name: certs
           hostPath:
@@ -89,27 +73,11 @@ spec:
               value: userinfo
           resources:
             requests:
-              memory: "256Mi"
+              memory: "512Mi"
               cpu: "500m"
             limits:
-              memory: "512Mi"
+              memory: "1Gi"
               cpu: "1000m"
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3
 ---
 apiVersion: v1
 kind: Service
@@ -151,27 +119,11 @@ spec:
               mountPath: /app/certs
           resources:
             requests:
-              memory: "256Mi"
+              memory: "512Mi"
               cpu: "500m"
             limits:
-              memory: "512Mi"
+              memory: "1Gi"
               cpu: "1000m"
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3
       volumes:
         - name: certs
           hostPath:
