@@ -153,6 +153,7 @@ jobs:
 
       - name: Apply Kubernetes manifests - Other Services
         run: |
+          kubectl apply -f Kubernetes/hpa-configurations.yaml
           kubectl apply -f Kubernetes/deployment-subscribe.yaml
           kubectl apply -f Kubernetes/deployment-with-resources.yaml
           kubectl apply -f Kubernetes/deployment-netflixclone.yaml
