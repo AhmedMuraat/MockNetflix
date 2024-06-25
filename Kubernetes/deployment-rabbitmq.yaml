@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: rabbitmq
 spec:
-  replicas: 1
+  replicas: 1  # Single replica as requested
   selector:
     matchLabels:
       app: rabbitmq
@@ -45,6 +45,13 @@ spec:
               mountPath: /etc/rabbitmq
             - name: rabbitmq-logs
               mountPath: /var/log/rabbitmq
+          resources:
+            requests:
+              memory: "256Mi"  # Adjusted memory request
+              cpu: "250m"      # Adjusted CPU request
+            limits:
+              memory: "512Mi"  # Adjusted memory limit
+              cpu: "500m"      # Adjusted CPU limit
       volumes:
         - name: rabbitmq-data
           persistentVolumeClaim:
