@@ -155,7 +155,7 @@ jobs:
         run: |
           kubectl apply -f Kubernetes/hpa-configurations.yaml
           kubectl apply -f Kubernetes/locust-deployment.yaml
-          kubectl apply -f Kubernetes/locustfile-confiqmap.yaml
+          kubectl apply -f Kubernetes/locustfile-configmap.yaml
           kubectl apply -f Kubernetes/deployment-subscribe.yaml
           kubectl apply -f Kubernetes/deployments-with-resources.yaml
           kubectl apply -f Kubernetes/deployment-netflixclone.yaml
