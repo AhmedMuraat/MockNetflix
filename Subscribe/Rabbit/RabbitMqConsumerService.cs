@@ -27,7 +27,7 @@ namespace Subscribe.Rabbit
                                  autoDelete: false,
                                  arguments: null);
 
-            var consumer = new EventingBasicConsumer(_channel);
+            var consumer = new AsyncEventingBasicConsumer(_channel);
             consumer.Received += async (model, ea) =>
             {
                 if (stoppingToken.IsCancellationRequested) return;

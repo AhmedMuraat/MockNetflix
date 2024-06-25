@@ -8,10 +8,10 @@ using Userdata.Models;
 public class UserCreatedConsumer : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly RabbitMQ.Client.IModel _channel;
+    private readonly IModel _channel;
     private readonly ILogger<UserCreatedConsumer> _logger;
 
-    public UserCreatedConsumer(IServiceProvider serviceProvider, RabbitMQ.Client.IModel channel, ILogger<UserCreatedConsumer> logger)
+    public UserCreatedConsumer(IServiceProvider serviceProvider, IModel channel, ILogger<UserCreatedConsumer> logger)
     {
         _serviceProvider = serviceProvider;
         _channel = channel;
@@ -23,9 +23,11 @@ public class UserCreatedConsumer : BackgroundService
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var consumer = new EventingBasicConsumer(_channel);
+        var consumer = new AsyncEventingBasicConsumer(_channel);
         consumer.Received += async (model, ea) =>
         {
+            if (stoppingToken.IsCancellationRequested) return;
+
             var body = ea.Body.ToArray();
             var message = Encoding.UTF8.GetString(body);
             _logger.LogInformation("Received message: {Message}", message);
@@ -54,7 +56,7 @@ public class UserCreatedConsumer : BackgroundService
                     };
 
                     context.UserData.Add(newUser);
-                    await context.SaveChangesAsync();
+                    await context.SaveChangesAsync(stoppingToken);
 
                     _logger.LogInformation("User information saved for user: {UserId}", userCreatedEvent.UserId);
                 }
@@ -69,5 +71,12 @@ public class UserCreatedConsumer : BackgroundService
 
         _logger.LogInformation("RabbitMQ consumer started.");
         return Task.CompletedTask;
+    }
+
+    public override Task StopAsync(CancellationToken stoppingToken)
+    {
+        _logger.LogInformation("UserCreatedConsumer is stopping.");
+        _channel?.Dispose();
+        return base.StopAsync(stoppingToken);
     }
 }
