@@ -7,7 +7,7 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: loginapi
-  minReplicas: 1
+  minReplicas: 3
   maxReplicas: 10
   metrics:
     - type: Resource
@@ -26,7 +26,7 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: api-gateway
-  minReplicas: 1
+  minReplicas: 3
   maxReplicas: 10
   metrics:
     - type: Resource
