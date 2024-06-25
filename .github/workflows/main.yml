@@ -143,9 +143,6 @@ jobs:
 
       - name: Apply Kubernetes manifests - Databases
         run: |
-          kubectl apply -f Kubernetes/deployment-db.yaml
-          kubectl apply -f Kubernetes/deployment-db-userinfo.yaml
-          kubectl apply -f Kubernetes/deployment-db-subscribe.yaml
           kubectl apply -f Kubernetes/persistentvolumeclaim.yaml
 
       - name: Apply Kubernetes manifests - RabbitMQ
