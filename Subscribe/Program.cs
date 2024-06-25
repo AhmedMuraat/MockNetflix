@@ -1,19 +1,24 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using RabbitMQ.Client;
 using Subscribe.Models;
 using Subscribe.Rabbit;
-using System.Data;
 using System.Text;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.Data.SqlClient;
+using System.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Services
+// Configure services
+builder.Services.AddControllers();
 builder.Services.AddHealthChecks()
     .AddCheck("sqlserver", new SqlServerHealthCheck("Server=dbsubscription;Database=Sub;User Id=sa;Password=Sjeemaa12!;TrustServerCertificate=true;"));
 
@@ -25,13 +30,9 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddControllers();
-
-// Register HttpClient
 builder.Services.AddHttpClient();
 
-// Configure RabbitMQ
-builder.Services.AddSingleton<IConnection>(sp =>
+builder.Services.AddSingleton(sp =>
 {
     var factory = new ConnectionFactory
     {
@@ -48,40 +49,35 @@ builder.Services.AddSingleton<IModel>(sp =>
     return connection.CreateModel();
 });
 
-// Register RabbitMQ consumer service
 builder.Services.AddHostedService<RabbitMqConsumerService>();
 
-// Configure DbContext
 builder.Services.AddDbContext<SubContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Configure JWT authentication
+var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("thisisasecretkeyanddontsharewithanyone")),
+            IssuerSigningKey = new SymmetricSecurityKey(key),
             ValidateIssuer = false,
             ValidateAudience = false
         };
     });
 
-// Configure HTTPS redirection
 builder.Services.Configure<HttpsRedirectionOptions>(options =>
 {
     options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
     options.HttpsPort = 443;
 });
 
-// Add Swagger for API documentation
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
@@ -103,14 +99,12 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseRouting();
 app.UseCors("MyPolicy");
+app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-
-app.MapControllers(); // This is essential to place after UseAuthorization
+app.MapControllers();
 app.MapHealthChecks("/health");
-
 app.Run();
 
 // Health Check Class

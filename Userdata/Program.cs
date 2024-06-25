@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -10,18 +9,17 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using RabbitMQ.Client;
-using System.Data;
 using System.Text;
 using Userdata.Models;
 using Microsoft.AspNetCore.HttpsPolicy;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Services
+// Configure services
+builder.Services.AddControllers();
 builder.Services.AddHealthChecks()
     .AddCheck("sqlserver", new SqlServerHealthCheck(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Configure CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
@@ -32,9 +30,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddControllers();
-
-// Configure RabbitMQ
 builder.Services.AddSingleton(sp =>
 {
     var factory = new ConnectionFactory
@@ -47,7 +42,6 @@ builder.Services.AddSingleton(sp =>
     return factory.CreateConnection().CreateModel();
 });
 
-// Configure DbContext
 builder.Services.AddDbContext<UserInfoContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), sqlOptions =>
     {
@@ -57,36 +51,32 @@ builder.Services.AddDbContext<UserInfoContext>(options =>
             errorNumbersToAdd: null);
     }));
 
-// Add hosted service for UserCreatedConsumer
 builder.Services.AddHostedService<UserCreatedConsumer>();
 
-// Configure JWT authentication
+var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("thisisasecretkeyanddontsharewithanyone")),
+            IssuerSigningKey = new SymmetricSecurityKey(key),
             ValidateIssuer = false,
             ValidateAudience = false
         };
     });
 
-// Configure HTTPS redirection
 builder.Services.Configure<HttpsRedirectionOptions>(options =>
 {
     options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
     options.HttpsPort = 443;
 });
 
-// Add Swagger for API documentation
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
@@ -104,14 +94,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.UseCors("AllowAll");
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-
-app.MapControllers(); // This is essential to place after UseAuthorization
+app.MapControllers();
 app.MapHealthChecks("/health");
-
 app.Run();
 
 // Health Check Class

@@ -6,24 +6,20 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer("Bearer", options =>
-{
-    options.Authority = "http://loginapi:8090"; // Ensure this URL is correct
-    options.RequireHttpsMetadata = false; // Set to true in production environments
-    options.TokenValidationParameters = new TokenValidationParameters
+// Configure services
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("thisisasecretkeyanddontsharewithanyone")), // Replace with your JWT secret key
-        ValidateIssuer = false,
-        ValidateAudience = false
-    };
-});
+        options.Authority = "http://loginapi:8090"; // Ensure this URL is correct
+        options.RequireHttpsMetadata = false; // Set to true in production environments
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("thisisasecretkeyanddontsharewithanyone")), // Replace with your JWT secret key
+            ValidateIssuer = false,
+            ValidateAudience = false
+        };
+    });
 
 builder.Configuration.AddJsonFile("ocelot.json", optional: false, reloadOnChange: true);
 
@@ -40,9 +36,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddControllers();
-
-// Configure logging for Ocelot
+// Add logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
@@ -56,16 +50,10 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-// Use CORS
 app.UseCors("AllowAll");
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
-// Ensure single call to UseOcelot
 await app.UseOcelot();
-
 app.Run();
