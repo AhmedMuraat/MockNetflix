@@ -10,17 +10,12 @@ using RabbitMQ.Client;
 using Subscribe.Models;
 using Subscribe.Rabbit;
 using System.Text;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.Data.SqlClient;
-using System.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure services
 builder.Services.AddControllers();
-builder.Services.AddHealthChecks()
-    .AddCheck("sqlserver", new SqlServerHealthCheck("Server=dbsubscription;Database=Sub;User Id=sa;Password=Sjeemaa12!;TrustServerCertificate=true;"));
 
 builder.Services.AddCors(options =>
 {
@@ -104,36 +99,4 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.MapHealthChecks("/health");
 app.Run();
-
-// Health Check Class
-public class SqlServerHealthCheck : IHealthCheck
-{
-    private readonly string _connectionString;
-
-    public SqlServerHealthCheck(string connectionString)
-    {
-        _connectionString = connectionString;
-    }
-
-    public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                await connection.OpenAsync(cancellationToken);
-                if (connection.State == ConnectionState.Open)
-                {
-                    return HealthCheckResult.Healthy("SQL Server is available.");
-                }
-            }
-            return HealthCheckResult.Unhealthy("SQL Server is not available.");
-        }
-        catch (Exception ex)
-        {
-            return HealthCheckResult.Unhealthy($"SQL Server check failed: {ex.Message}");
-        }
-    }
-}

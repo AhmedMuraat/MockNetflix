@@ -1,9 +1,103 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: loginapi
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: loginapi
+  template:
+    metadata:
+      labels:
+        app: loginapi
+    spec:
+      containers:
+        - name: loginapi
+          image: ahmedmuraat/login:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Development
+          volumeMounts:
+            - name: certs
+              mountPath: /app/certs
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+      volumes:
+        - name: certs
+          hostPath:
+            path: /path/to/your/certs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loginapi
+spec:
+  selector:
+    app: loginapi
+  ports:
+    - protocol: TCP
+      port: 8090
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: ahmedmuraat/apigateway:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: LOGIN_API_SERVICE_HOST
+              value: loginapi
+            - name: USERINFO_SERVICE_HOST
+              value: userinfo
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+spec:
+  selector:
+    app: api-gateway
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 8080
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
   name: userinfo
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: userinfo
@@ -23,6 +117,13 @@ spec:
           volumeMounts:
             - name: certs
               mountPath: /app/certs
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
       volumes:
         - name: certs
           hostPath:

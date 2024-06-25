@@ -11,7 +11,6 @@ using Login.Models;
 using RabbitMQ.Client;
 using System.Text.Json.Serialization;
 using Login.Rabbit;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -78,10 +77,6 @@ builder.Services.AddSingleton<IModel>(sp =>
 
 builder.Services.AddHostedService<RabbitMqConsumerService>();
 
-builder.Services.AddHealthChecks()
-    .AddSqlServer(connectionString, name: "sql", failureStatus: HealthStatus.Unhealthy)
-    .AddRabbitMQ(rabbitConnectionString: $"amqp://{builder.Configuration["RabbitMQ:UserName"]}:{builder.Configuration["RabbitMQ:Password"]}@{builder.Configuration["RabbitMQ:HostName"]}/", name: "rabbitmq", failureStatus: HealthStatus.Unhealthy);
-
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -93,7 +88,5 @@ app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapHealthChecks("/health");
-app.Map("/health", () => Results.Ok("Healthy"));
 app.MapControllers();
 app.Run();
