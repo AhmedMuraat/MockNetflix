@@ -1,19 +1,25 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using RabbitMQ.Client;
 using System.Data;
 using System.Text;
 using Userdata.Models;
+using Microsoft.AspNetCore.HttpsPolicy;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure Services
 builder.Services.AddHealthChecks()
-    .AddCheck("sqlserver", new SqlServerHealthCheck("Server=dbuserinfo;Database=UserInfo;User Id=sa;Password=Sjeemaa12!;TrustServerCertificate=true;"));
+    .AddCheck("sqlserver", new SqlServerHealthCheck(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Configure CORS
 builder.Services.AddCors(options =>
@@ -35,14 +41,21 @@ builder.Services.AddSingleton(sp =>
     {
         HostName = builder.Configuration["RabbitMQ:HostName"],
         UserName = builder.Configuration["RabbitMQ:UserName"],
-        Password = builder.Configuration["RabbitMQ:Password"]
+        Password = builder.Configuration["RabbitMQ:Password"],
+        DispatchConsumersAsync = true // Enable async consumers
     };
     return factory.CreateConnection().CreateModel();
 });
 
 // Configure DbContext
 builder.Services.AddDbContext<UserInfoContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), sqlOptions =>
+    {
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 10,
+            maxRetryDelay: TimeSpan.FromSeconds(30),
+            errorNumbersToAdd: null);
+    }));
 
 // Add hosted service for UserCreatedConsumer
 builder.Services.AddHostedService<UserCreatedConsumer>();

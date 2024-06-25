@@ -66,6 +66,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 // Ensure single call to UseOcelot
-app.UseOcelot().Wait();
+await app.UseOcelot();
 
 app.Run();

@@ -26,7 +26,13 @@ builder.Services.AddControllers()
 // Add DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<NetflixLoginContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlServer(connectionString, sqlOptions =>
+    {
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 10,
+            maxRetryDelay: TimeSpan.FromSeconds(30),
+            errorNumbersToAdd: null);
+    }));
 
 // Configure CORS
 builder.Services.AddCors(options =>
@@ -66,7 +72,8 @@ builder.Services.AddSingleton(sp =>
     {
         HostName = builder.Configuration["RabbitMQ:HostName"],
         UserName = builder.Configuration["RabbitMQ:UserName"],
-        Password = builder.Configuration["RabbitMQ:Password"]
+        Password = builder.Configuration["RabbitMQ:Password"],
+        DispatchConsumersAsync = true // Enable async consumers
     };
     return factory.CreateConnection();
 });

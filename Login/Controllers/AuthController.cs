@@ -35,6 +35,9 @@ namespace Login.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             if (await _context.Users.AnyAsync(u => u.Email == registerRequest.Email))
                 return BadRequest(new { message = "Email already exists." });
 
@@ -48,7 +51,7 @@ namespace Login.Controllers
                 Password = BCrypt.Net.BCrypt.HashPassword(registerRequest.Password)
             };
 
-            _context.Users.Add(user);
+            await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
 
             // Publish user creation event to RabbitMQ
@@ -125,9 +128,9 @@ namespace Login.Controllers
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
 
             var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, user.Email)
-                };
+            {
+                new Claim(ClaimTypes.Name, user.Email)
+            };
 
             if (user.Role != null && !string.IsNullOrEmpty(user.Role.RoleDesc))
             {

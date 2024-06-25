@@ -4,8 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using RabbitMQ.Client;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Channels;
 using Userdata.Models;
+using Microsoft.Extensions.Logging;
 using Userdata.Rabbit;
 
 namespace Userdata.Controllers
@@ -26,90 +26,81 @@ namespace Userdata.Controllers
             _channel = channel;
         }
 
-
-        // GET: api/UserInfo
+        // GET: api/Users
         [HttpGet]
-            
-            public async Task<IActionResult> GetUsersInfo()
-            {
-                var usersInfo = await _context.UserData.ToListAsync();
-                return Ok(usersInfo);
-            }
-
-        // GET: api/UserInfo/5
-            [HttpGet("{id}")]
-            public async Task<IActionResult> GetUserInfo(int id)
-            {
-                _logger.LogInformation("Received request to fetch user info for userId: {UserId}", id);
-
-                // Find the user info by UserId, not UserInfoId
-                var userInfo = await _context.UserData.FirstOrDefaultAsync(u => u.UserId == id);
-
-                if (userInfo == null)
-                {
-                    _logger.LogWarning("User info for userId: {UserId} not found", id);
-                    return NotFound();
-                }
-
-                _logger.LogInformation("User info for userId: {UserId} found", id);
-                return Ok(userInfo);
-            }
-
-        // POST: api/UserInfo
-
-        [HttpPost]
-            public async Task<IActionResult> PostUserInfo([FromBody] UserDatum userInfo)
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                _context.UserData.Add(userInfo);
-                await _context.SaveChangesAsync();
-
-                return CreatedAtAction("GetUserInfo", new { id = userInfo.UserInfoId }, userInfo);
-            }
-
-        // PUT: api/UserInfo/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUserInfo(int id, [FromBody] UserUpdateRequest userUpdateRequest)
+        public async Task<IActionResult> GetUsers()
         {
-            if (id != userUpdateRequest.UserInfoId)
+            var users = await _context.UserData.ToListAsync();
+            return Ok(users);
+        }
+
+        // GET: api/Users/5
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUser(int id)
+        {
+            _logger.LogInformation("Received request to fetch user info for userId: {UserId}", id);
+
+            var user = await _context.UserData.FirstOrDefaultAsync(u => u.UserId == id);
+
+            if (user == null)
+            {
+                _logger.LogWarning("User info for userId: {UserId} not found", id);
+                return NotFound();
+            }
+
+            _logger.LogInformation("User info for userId: {UserId} found", id);
+            return Ok(user);
+        }
+
+        // POST: api/Users
+        [HttpPost]
+        public async Task<IActionResult> PostUser([FromBody] UserDatum user)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            await _context.UserData.AddAsync(user);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetUser), new { id = user.UserInfoId }, user);
+        }
+
+        // PUT: api/Users/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutUser(int id, [FromBody] UserUpdateRequest updateRequest)
+        {
+            if (id != updateRequest.UserInfoId)
             {
                 return BadRequest();
             }
 
-            var existingUserInfo = await _context.UserData.FirstOrDefaultAsync(u => u.UserInfoId == id);
-            if (existingUserInfo == null)
+            var existingUser = await _context.UserData.FirstOrDefaultAsync(u => u.UserInfoId == id);
+            if (existingUser == null)
             {
                 return NotFound();
             }
 
-            // Update the existing user info
-            existingUserInfo.Name = userUpdateRequest.Name;
-            existingUserInfo.LastName = userUpdateRequest.LastName;
-            existingUserInfo.Address = userUpdateRequest.Address;
-            existingUserInfo.DateOfBirth = userUpdateRequest.DateOfBirth;
+            existingUser.Name = updateRequest.Name;
+            existingUser.LastName = updateRequest.LastName;
+            existingUser.Address = updateRequest.Address;
+            existingUser.DateOfBirth = updateRequest.DateOfBirth;
 
-            _context.Entry(existingUserInfo).State = EntityState.Modified;
+            _context.Entry(existingUser).State = EntityState.Modified;
 
             try
             {
                 await _context.SaveChangesAsync();
 
-                // Send a RabbitMQ message to update the Login database
                 var message = new
                 {
-                    UserId = existingUserInfo.UserId,
-                    Username = userUpdateRequest.Username,
-                    Email = userUpdateRequest.Email
+                    UserId = existingUser.UserId,
+                    Username = updateRequest.Username,
+                    Email = updateRequest.Email
                 };
                 var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
-                _channel.BasicPublish(exchange: "",
-                                     routingKey: "user-update-queue",
-                                     basicProperties: null,
-                                     body: body);
+                _channel.BasicPublish(exchange: "", routingKey: "user-update-queue", basicProperties: null, body: body);
 
                 return NoContent();
             }
@@ -128,35 +119,25 @@ namespace Userdata.Controllers
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUserInfo(int id)
+        public async Task<IActionResult> DeleteUser(int id)
         {
-            var userInfo = await _context.UserData.FirstOrDefaultAsync(u => u.UserId == id);
-            if (userInfo == null)
+            var user = await _context.UserData.FirstOrDefaultAsync(u => u.UserId == id);
+            if (user == null)
             {
                 return NotFound();
             }
 
-            _context.UserData.Remove(userInfo);
+            _context.UserData.Remove(user);
 
             try
             {
                 await _context.SaveChangesAsync();
 
-                // Send RabbitMQ messages to delete the user from the Login and Subscription databases
                 var message = new { UserId = id };
                 var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
 
-                // Send message to Login API
-                _channel.BasicPublish(exchange: "",
-                                      routingKey: "user-delete-login-queue",
-                                      basicProperties: null,
-                                      body: body);
-
-                // Send message to Subscription API
-                _channel.BasicPublish(exchange: "",
-                                      routingKey: "user-delete-subscription-queue",
-                                      basicProperties: null,
-                                      body: body);
+                _channel.BasicPublish(exchange: "", routingKey: "user-delete-login-queue", basicProperties: null, body: body);
+                _channel.BasicPublish(exchange: "", routingKey: "user-delete-subscription-queue", basicProperties: null, body: body);
 
                 return NoContent();
             }
