@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: loginapi
 spec:
-  replicas: 2  # Adjusted replicas
+  replicas: 3  # Adjusted replicas
   selector:
     matchLabels:
       app: loginapi
@@ -25,11 +25,11 @@ spec:
               mountPath: /app/certs
           resources:
             requests:
-              memory: "256Mi"  # Adjusted memory request
-              cpu: "250m"      # Adjusted CPU request
+              memory: "128Mi"  # Adjusted memory request
+              cpu: "125m"      # Adjusted CPU request
             limits:
-              memory: "512Mi"  # Adjusted memory limit
-              cpu: "500m"      # Adjusted CPU limit
+              memory: "256Mi"  # Adjusted memory limit
+              cpu: "250m"      # Adjusted CPU limit
       volumes:
         - name: certs
           hostPath:
@@ -52,7 +52,7 @@ kind: Deployment
 metadata:
   name: api-gateway
 spec:
-  replicas: 2  # Adjusted replicas
+  replicas: 3  # Adjusted replicas
   selector:
     matchLabels:
       app: api-gateway
@@ -73,11 +73,11 @@ spec:
               value: userinfo
           resources:
             requests:
-              memory: "256Mi"  # Adjusted memory request
-              cpu: "250m"      # Adjusted CPU request
+              memory: "128Mi"  # Adjusted memory request
+              cpu: "125m"      # Adjusted CPU request
             limits:
-              memory: "512Mi"  # Adjusted memory limit
-              cpu: "500m"      # Adjusted CPU limit
+              memory: "256Mi"  # Adjusted memory limit
+              cpu: "250m"      # Adjusted CPU limit
 ---
 apiVersion: v1
 kind: Service
@@ -97,7 +97,7 @@ kind: Deployment
 metadata:
   name: userinfo
 spec:
-  replicas: 2  # Adjusted replicas
+  replicas: 3  # Adjusted replicas
   selector:
     matchLabels:
       app: userinfo
@@ -119,11 +119,11 @@ spec:
               mountPath: /app/certs
           resources:
             requests:
-              memory: "256Mi"  # Adjusted memory request
-              cpu: "250m"      # Adjusted CPU request
+              memory: "128Mi"  # Adjusted memory request
+              cpu: "125m"      # Adjusted CPU request
             limits:
-              memory: "512Mi"  # Adjusted memory limit
-              cpu: "500m"      # Adjusted CPU limit
+              memory: "256Mi"  # Adjusted memory limit
+              cpu: "250m"      # Adjusted CPU limit
       volumes:
         - name: certs
           hostPath:
