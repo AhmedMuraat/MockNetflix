@@ -26,7 +26,7 @@ class UserBehavior(HttpUser):
 
         user_id = 5160  # Use the appropriate user ID for testing
         headers = {"Authorization": f"Bearer {self.token}"}
-        response = self.client.get(f"/api/userinfo/{user_id}", headers=headers)
+        response = self.client.get(f"/api/users/{user_id}", headers=headers)
 
         if response.status_code == 200:
             print(f"Successfully fetched user info for user ID {user_id}")
