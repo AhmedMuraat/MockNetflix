@@ -17,6 +17,20 @@
     margin: 0 auto;
 }
 
+.gdpr-consent .gdpr-checklist {
+    text-align: left;
+    margin: 20px 0;
+}
+
+.gdpr-consent .gdpr-checklist label {
+    display: block;
+    margin: 5px 0;
+}
+
+.gdpr-consent .gdpr-buttons {
+    margin-top: 20px;
+}
+
 .gdpr-consent button {
     margin: 5px;
     padding: 10px 20px;
