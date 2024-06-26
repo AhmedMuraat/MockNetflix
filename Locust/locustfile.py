@@ -1,4 +1,4 @@
-from locust import HttpUser, task, between
+from locust import HttpUser, task, between, events
 
 class UserBehavior(HttpUser):
     wait_time = between(1, 5)
@@ -10,13 +10,29 @@ class UserBehavior(HttpUser):
             "email": "admin@gmail.com",
             "password": "123"
         })
-        self.token = response.json()['accessToken']
+
+        if response.status_code == 200:
+            self.token = response.json().get('accessToken')
+            print(f"Successfully authenticated. Token: {self.token}")
+        else:
+            print(f"Failed to authenticate. Status code: {response.status_code}")
+            print(f"Response content: {response.content}")
 
     @task
     def get_user(self):
+        if not self.token:
+            print("No token available. Skipping the request.")
+            return
+
         user_id = 5160  # Use the appropriate user ID for testing
         headers = {"Authorization": f"Bearer {self.token}"}
-        self.client.get(f"/api/userinfo/{user_id}", headers=headers)
+        response = self.client.get(f"/api/userinfo/{user_id}", headers=headers)
+
+        if response.status_code == 200:
+            print(f"Successfully fetched user info for user ID {user_id}")
+        else:
+            print(f"Failed to fetch user info. Status code: {response.status_code}")
+            print(f"Response content: {response.content}")
 
 class WebsiteUser(HttpUser):
     tasks = [UserBehavior]
