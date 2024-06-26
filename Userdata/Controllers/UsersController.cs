@@ -12,7 +12,6 @@ namespace Userdata.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class UsersController : Controller
     {
         private readonly UserInfoContext _context;
