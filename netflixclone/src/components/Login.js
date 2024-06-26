@@ -17,7 +17,7 @@ const Login = ({ setToken, setUsername, setUserId }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://48.217.203.73:5000/api/auth/login', formData, {
+            const response = await axios.post('http://51.8.3.51:5000/api/auth/login', formData, {
                 headers: {
                     'Content-Type': 'application/json'
                 }

@@ -19,7 +19,7 @@ const UserInfo = ({ token, userId }) => {
     useEffect(() => {
         const fetchUserInfo = async () => {
             try {
-                const response = await axios.get(`http://48.217.203.73:5000/api/users/${userId}`, {
+                const response = await axios.get(`http://51.8.3.51:5000/api/users/${userId}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setUserInfo({
@@ -52,7 +52,7 @@ const UserInfo = ({ token, userId }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.put(`http://48.217.203.73:5000/api/users/${userInfo.userInfoId}`, userInfo, {
+            await axios.put(`http://51.8.3.51:5000/api/users/${userInfo.userInfoId}`, userInfo, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setMessage('User information updated successfully');
@@ -64,7 +64,7 @@ const UserInfo = ({ token, userId }) => {
 
     const handleDelete = async () => {
         try {
-            await axios.delete(`http://48.217.203.73:5000/api/users/${userInfo.userId}`, {
+            await axios.delete(`http://51.8.3.51:5000/api/users/${userInfo.userId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setMessage('User account deleted successfully');

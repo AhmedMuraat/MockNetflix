@@ -9,7 +9,7 @@ const BuyCredits = ({ token, userId }) => {
 
     const fetchTotalCredits = useCallback(async () => {
         try {
-            const response = await axios.get(`http://48.217.203.73:5000/api/subscribe/totalcredits/${userId}`, {
+            const response = await axios.get(`http://51.8.3.51:5000/api/subscribe/totalcredits/${userId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setTotalCredits(response.data.totalCredits); // Ensure to match the exact case
@@ -21,7 +21,7 @@ const BuyCredits = ({ token, userId }) => {
 
     const checkPremiumStatus = useCallback(async () => {
         try {
-            const response = await axios.get(`http://48.217.203.73:5000/api/subscribe/haspremium/${userId}`, {
+            const response = await axios.get(`http://51.8.3.51:5000/api/subscribe/haspremium/${userId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setHasPremium(response.data.hasPremium); // Ensure to match the exact case
@@ -40,7 +40,7 @@ const BuyCredits = ({ token, userId }) => {
         e.preventDefault();
         try {
             const response = await axios.post(
-                'http://48.217.203.73:5000/api/subscribe/buycredits',
+                'http://51.8.3.51:5000/api/subscribe/buycredits',
                 { userId, amount: parseInt(amount) },
                 { headers: { Authorization: `Bearer ${token}` } }
             );

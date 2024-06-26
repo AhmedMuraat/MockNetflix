@@ -25,7 +25,7 @@ const Register = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://48.217.203.73:5000/api/auth/register', formData, {
+            await axios.post('http://51.8.3.51:5000/api/auth/register', formData, {
                 headers: {
                     'Content-Type': 'application/json'
                 }

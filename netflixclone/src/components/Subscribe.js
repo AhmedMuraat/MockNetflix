@@ -9,7 +9,7 @@ const Subscribe = ({ token, userId }) => {
         e.preventDefault();
         try {
             await axios.post(
-                'http://48.217.203.73:5000/api/subscribe/subscribe',
+                'http://51.8.3.51:5000/api/subscribe/subscribe',
                 { userId, planId },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
