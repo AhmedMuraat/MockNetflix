@@ -1,4 +1,25 @@
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: locustfile-configmap
+  namespace: default
+data:
+  locustfile.py: |
+    from locust import HttpUser, task, between
+
+    class UserBehavior(HttpUser):
+        wait_time = between(1, 5)
+
+        @task
+        def get_user(self):
+            user_id = 1  # You can parameterize this to test different user IDs
+            self.client.get(f"/api/userinfo/{user_id}")
+
+    class WebsiteUser(HttpUser):
+        tasks = [UserBehavior]
+        wait_time = between(5, 15)
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: locust-master
