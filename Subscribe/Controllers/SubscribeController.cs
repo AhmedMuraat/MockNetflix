@@ -24,7 +24,7 @@ namespace Subscribe.Controllers
             _context = context;
             _logger = logger;
             _httpClient = httpClientFactory.CreateClient();
-            _httpClient.BaseAddress = new Uri("http://48.217.203.73:5000"); // Set base address to the user info service
+            _httpClient.BaseAddress = new Uri("http://51.8.3.51:5000"); // Set base address to the user info service
         }
 
         [HttpPost("buycredits")]
